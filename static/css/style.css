@@ -4,24 +4,32 @@
     box-sizing: border-box;
 }
 
+/* Smooth scrolling untuk menambah UX */
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
-    --ink: #1c1917;
-    --paper: #faf6f0;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
-    --line: #e3d9c9;
-    --text-muted: #6b6459;
-    --radius: 4px;
+    /* Penggantian penamaan setiap warna dan perubahan color pallette */
+    --primary: #1A365D; 
+    --secondary: #2B6CB0;
+    --accent: #D69E2E;
+    
+    --paper: #f8fafc; 
+    --text-muted: #4A5568;
+    --text-light: #E2E8F0; /* Untuk teks di latar gelap */
+    --line: #E2E8F0;
+    --radius: 12px;
 }
 
 body {
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--ink);
+    color: var(--primary);
     background-color: var(--paper);
     line-height: 1.6;
 }
 
-h1, .brand {
+h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di setiap cardn*/
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
@@ -33,6 +41,7 @@ h1, .brand {
 
 .site-header {
     border-bottom: 1px solid var(--line);
+    background-color: #ffffff; /* Karena sekarang hero section menggunakan latar belakang gelap */
 }
 
 .site-header .container {
@@ -45,7 +54,7 @@ h1, .brand {
 .brand {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--ink);
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -55,13 +64,21 @@ h1, .brand {
 }
 
 .site-header nav a {
-    color: var(--ink);
+    color: var(--primary);
     text-decoration: none;
     font-size: 0.95rem;
+    font-weight: 600;
 }
 
+/* Mengubah warna teks pada saat dihover */
+.site-header nav a:hover {
+    color: var(--secondary); /* warna teks hasil hover menggunakan warna secondary */
+}
+
+/* Hero section (latar gelap) */
 .hero {
     padding: 4.5rem 0 5rem;
+    background-color: var(--primary);
 }
 
 .hero-grid {
@@ -85,7 +102,7 @@ h1, .brand {
     font-size: 0.85rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--accent-dark);
+    color: var(--accent);
     font-weight: 700;
     margin-bottom: 0.75rem;
 }
@@ -93,10 +110,11 @@ h1, .brand {
 .hero-identity h1 {
     font-size: clamp(3rem, 7vw, 5rem);
     line-height: 0.95;
+    color: #ffffff; /* Untuk warna nama lengkap */
 }
 
 .bio {
-    color: var(--text-muted);
+    color: var(--text-light); /* Untuk warna deskripsi singkat pada hero */
     max-width: 480px;
     margin-bottom: 1.5rem;
 }
@@ -107,16 +125,19 @@ h1, .brand {
     margin-bottom: 1.5rem;
 }
 
+/* Perubahan pada warna text untuk Program Studi */
 .meta-row dt {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: #A0AEC0;
     margin-bottom: 0.15rem;
 }
 
+/* Perubahan pada warna text untuk NPM */
 .meta-row dd {
     font-weight: 600;
+    color: #ffffff;
 }
 
 .social-links {
@@ -130,15 +151,17 @@ h1, .brand {
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
-    color: var(--paper);
-    background-color: var(--ink);
+    color: var(--primary);
+    background-color: #ffffff; /* Penyesuaian warna */
     border-radius: var(--radius);
     padding: 0.5rem 1.1rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease; /* Karena warna text dan background akan berubah bersamaan saat dihover, transition diganti ke all */
 }
 
+/* Perubahan warna saat dihover */
 .social-link:hover {
     background-color: var(--accent);
+    color: #ffffff;
 }
 
 .hero-photo {
@@ -166,14 +189,15 @@ h1, .brand {
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: var(--radius);
-    border: 3px solid var(--ink);
+    border: 3px solid var(--accent);
 }
 
 .site-footer {
-    padding: 1.5rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--line);
+    padding: 1.5rem 1.5rem; /* menambahkan padding kiri-kanan  */
+    background-color: var(--primary);
+    color: var(--paper);
+    text-align: center; /* text menjadi di tengah  */
+    font-size: 0.85rem; /* border top dihilangkan karena setiap section pada page ini akan berbeda beda warna backgroundnya (sehingga border line tidak diperlukan!) */
 }
 
 @media (max-width: 600px) {
