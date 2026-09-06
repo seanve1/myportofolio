@@ -320,6 +320,13 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
     font-size: 0.85rem; /* border top dihilangkan karena setiap section pada page ini akan berbeda beda warna backgroundnya (sehingga border line tidak diperlukan!) */
 }
 
+/* Untuk 800px ke bawah, card akan ditampilkan secara vertikal dari atas ke bawah, tidak dibagi 2 lagi */
+@media (max-width: 800px) {
+    .experience-list {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 600px) {
     .hero-grid {
         grid-template-columns: 1fr;
