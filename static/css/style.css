@@ -192,6 +192,126 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
     border: 3px solid var(--accent);
 }
 
+/* Experience */
+.experience-section {
+    padding: 4rem 0 6rem;
+    background-color: var(--paper);
+}
+
+/* Untuk Experience */
+.section-title {
+    font-size: 2.2rem;
+    margin-bottom: 2.5rem;
+    color: var(--primary);
+}
+
+/* Akan ditampilkan sebanyak 6 card yang terbagi menjadi 2 kolom  */
+.experience-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+/* Untuk per card */
+.experience-card {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: none;
+    border-radius: var(--radius);
+    height: 340px; 
+    overflow: hidden;
+    cursor: default;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+ /* Untuk pengaturan card */
+.card-normal {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    height: 100%;
+    transition: opacity 0.3s ease;
+}
+
+.card-info h3 {
+    font-size: 1.4rem;
+    color: #ffffff;
+    margin-bottom: 0.35rem;
+}
+
+.org-name {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+
+.org-date {
+    font-size: 1rem;
+    color: #e0e0e0;
+    margin-top: 0.5rem;
+}
+
+.org-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain; 
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+/* Untuk keadaan card saat dihover */
+.card-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--secondary), #153e6b);
+    padding: 1.5rem 2rem; 
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.experience-card:hover .card-normal {
+    opacity: 0;
+}
+
+.experience-card:hover .card-hover {
+    opacity: 1;
+}
+
+.hover-header h3 {
+    font-size: 1.15rem; 
+    color: #ffffff;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem; 
+}
+
+.hover-desc {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    flex-grow: 1;
+    font-size: 0.95rem;
+    color: #ffffff;
+}
+
+.hover-desc li {
+    margin-bottom: 0.35rem;
+}
+
+.hover-date {
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #ffffff; /* Penyesuaian warna */
+}
+
+
 .site-footer {
     padding: 1.5rem 1.5rem; /* menambahkan padding kiri-kanan  */
     background-color: var(--primary);
