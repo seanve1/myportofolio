@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jotham Seanvedi - Portfolio</title>
+    <title>{{ name }} - Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -12,10 +12,10 @@
 <body>
     <header class="site-header">
         <div class="container">
-            <a href="#profile" class="brand">Jotham Seanvedi</a>
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
             <nav>
-                <a href="#profile">Profile</a>
-                <a href="#experience">Experience</a> <!-- menambah section experience -->
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
             </nav>
         </div>
     </header>
@@ -26,22 +26,22 @@
             <div class="container hero-grid">
                 <div class="hero-identity">
                     <p class="hero-kicker">Information System &middot; Universitas Indonesia</p>
-                    <h1>Jotham Seanvedi Takin Allo</h1>
+                    <h1>{{ name }}</h1>
                 </div>
                 <div class="hero-photo">
                     <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/Sean.jpg" alt="Photo of Jotham Seanvedi">
+                    <img class="avatar" src="/static/img/Sean.jpg" alt="Photo of {{ name }}">
                 </div>
                 <div class="hero-details">
-                    <p class="bio">A highly motivated learner with a strong passion for mathematics and technology, currently pursuing Information Systems at Universitas Indonesia. I am someone who is always eager to learn, persistent in every effort, and forward-looking in seeking opportunities for growth. With a mindset focused on continuous improvement, I embrace challenges as chances to develop myself and contribute meaningfully in both academic and professional fields.</p>
+                    <p class="bio">{{ bio }}</p>
                     <dl class="meta-list">
                         <div class="meta-row">
                             <dt>NPM</dt>
-                            <dd>2506584161</dd>
+                            <dd>{{ npm }}</dd>
                         </div>
                         <div class="meta-row">
                             <dt>Program</dt>
-                            <dd>S1 Sistem Informasi</dd>
+                            <dd>{{ study_program }}</dd>
                         </div>
                     </dl>
                     <div class="social-links">
@@ -52,159 +52,11 @@
                 </div>
             </div>
         </section>
-
-        <!-- Experience -->
-        <section class="experience-section" id="experience">
-            <div class="container">
-                <h2 class="section-title">Experience</h2>
-                <div class="experience-list">
-                    
-                    <!-- (kotak pertama) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/RISTEK.png" alt="Logo RISTEK Fasilkom UI">
-                            <div class="card-info">
-                                <h3>Member of Product & Project Management</h3>
-                                <p class="org-name">RISTEK Fasilkom UI</p>
-                                <p class="org-date">2026 - 2027</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>Member of Product & Project Management - RISTEK Fasilkom UI</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Executed shared responsibilities across product and project lifecycles.</li>
-                                <li>Participated in integrated management and technical training programs.</li>
-                                <li>Strengthened career readiness through practical project management expertise.</li>
-                            </ul>
-                            <p class="hover-date">2026 - 2027</p>
-                        </div>
-                    </div>
-
-                    <!-- (kotak kedua) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/OH26.png" alt="Logo Open Fasilkom UI 2026">
-                            <div class="card-info">
-                                <h3>Vice Project Officer</h3>
-                                <p class="org-name">Open House Fasilkom UI 2026</p>
-                                <p class="org-date">2026</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>Vice Project Officer - Open House Fasilkom UI 2026</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Plan structure and prepare pre-event administrative documents.</li>
-                                <li>Supervise execution and resolve on-site operational issues.</li>
-                                <li>Evaluate overall performance and compile final reports.</li>
-                            </ul>
-                            <p class="hover-date">2026</p>
-                        </div>
-                    </div>
-
-                    <!-- (kotak ketiga) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/COMPFEST.png" alt="Logo COMPFEST 18">
-                            <div class="card-info">
-                                <h3>Staff of Product Management Academy</h3>
-                                <p class="org-name">COMPFEST 18</p>
-                                <p class="org-date">2026</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>Staff of Product Management Academy - COMPFEST 18</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Approached and secured mentors and keynote speakers.</li>
-                                <li>Managed the end-to-end mentee selection process.</li>
-                                <li>Facilitated operations throughout the product camp.</li>
-                            </ul>
-                            <p class="hover-date">2026</p>
-                        </div>
-                    </div>
-
-                    <!-- (kotak keempat) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/BETIS.png" alt="Logo BETIS 2026">
-                            <div class="card-info">
-                                <h3>Person In Charge of Event</h3>
-                                <p class="org-name">BETIS Fasilkom UI 2026</p>
-                                <p class="org-date">2026</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>Person In Charge of Event - BETIS Fasilkom UI 2026</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Maximized human resources and organizational capital.</li>
-                                <li>Conducted periodic individual performance reviews.</li>
-                                <li>Evaluated departmental efficiency and productivity.</li>
-                            </ul>
-                            <p class="hover-date">2026</p>
-                        </div>
-                    </div>
-
-                    <!-- (kotak kelima) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/GDGoCUI.jpg" alt="Logo GDGoC UI 2026">
-                            <div class="card-info">
-                                <h3>People Operations Core Team</h3>
-                                <p class="org-name">Google Developer Groups on Campus Universitas Indonesia</p>
-                                <p class="org-date">2025 - 2026</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>People Operations Core Team - Google Developer Groups on Campus Universitas Indonesia</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Maximized human resources across the organization.</li>
-                                <li>Evaluated individual performance on regular basis.</li>
-                                <li>Conducted periodic departmental and division reviews.</li>
-                            </ul>
-                            <p class="hover-date">2025 - 2026</p>
-                        </div>
-                    </div>
-
-                    <!-- (kotak keenam) -->
-                    <div class="experience-card">
-                        <div class="card-normal">
-                            <img class="org-logo" src="/static/img/OH25.png" alt="Logo Open House Fasilkom UI 2025">
-                            <div class="card-info">
-                                <h3>Human Resources of IT Development</h3>
-                                <p class="org-name">Open House Fasilkom UI 2025</p>
-                                <p class="org-date">2025</p>
-                            </div>
-                        </div>
-                        <div class="card-hover">
-                            <div class="hover-header">
-                                <h3>Human Resources of IT Development - Open House Fasilkom UI 2025</h3>
-                            </div>
-                            <ul class="hover-desc">
-                                <li>Supported internal management and division engagement.</li>
-                                <li>Monitored progress and compiled evaluation reports.</li>
-                                <li>Organized internal events to strengthen collaboration.</li>
-                            </ul>
-                            <p class="hover-date">2025</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
     </main>
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 Jotham Seanvedi. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
 </body>

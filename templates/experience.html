@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experience - {{ name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+            <nav>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Experience -->
+        <section class="experience-section" id="experience">
+            <div class="container">
+                <h2 class="section-title">Experience</h2>
+                <div class="experience-list">
+                    
+                    {% for experience in experience_list %}
+                    <div class="experience-card">
+                        <div class="card-normal">
+                            <img class="org-logo" src="{{ experience.thumbnail }}" alt="Logo {{ experience.category }}">
+                            <div class="card-info">
+                                <h3>{{ experience.title }}</h3>
+                                <p class="org-name">{{ experience.category }}</p>
+                                <p class="org-date">
+                                    {{ experience.started_at|date:"Y" }}{% if experience.ended_at and experience.ended_at|date:"Y" != experience.started_at|date:"Y" %} - {{ experience.ended_at|date:"Y" }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="card-hover">
+                            <div class="hover-header">
+                                <h3>{{ experience.title }} - {{ experience.category }}</h3>
+                            </div>
+                            <ul class="hover-desc">
+                                <li>{{ experience.desc_1 }}</li>
+                                <li>{{ experience.desc_2 }}</li>
+                                <li>{{ experience.desc_3 }}</li>
+                            </ul>
+                            <p class="hover-date">
+                                {{ experience.started_at|date:"Y" }}{% if experience.ended_at and experience.ended_at|date:"Y" != experience.started_at|date:"Y" %} - {{ experience.ended_at|date:"Y" }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="grid-column: 1 / -1; color: var(--primary);">Belum ada pengalaman yang ditambahkan.</p>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+</body>
+</html>
