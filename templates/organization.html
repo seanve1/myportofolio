@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Experience - {{ name }}</title>
+    <title>Organization - {{ name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -15,41 +15,41 @@
             <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
             <nav>
                 <a href="{% url 'main:show_main' %}">Profile</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_organization' %}">Organization</a>
             </nav>
         </div>
     </header>
 
     <main>
-        <!-- Experience -->
-        <section class="experience-section" id="experience">
+        <!-- Organization -->
+        <section class="organization-section" id="organization">
             <div class="container">
-                <h2 class="section-title">Experience</h2>
-                <div class="experience-list">
+                <h2 class="section-title">Organization</h2>
+                <div class="organization-list">
                     
-                    {% for experience in experience_list %}
-                    <div class="experience-card">
+                    {% for organization in organization_list %}
+                    <div class="organization-card">
                         <div class="card-normal">
-                            <img class="org-logo" src="{{ experience.thumbnail }}" alt="Logo {{ experience.category }}">
+                            <img class="org-logo" src="{{ organization.thumbnail }}" alt="Logo {{ organization.category }}">
                             <div class="card-info">
-                                <h3>{{ experience.title }}</h3>
-                                <p class="org-name">{{ experience.category }}</p>
+                                <h3>{{ organization.title }}</h3>
+                                <p class="org-name">{{ organization.category }}</p>
                                 <p class="org-date">
-                                    {{ experience.started_at|date:"Y" }}{% if experience.ended_at and experience.ended_at|date:"Y" != experience.started_at|date:"Y" %} - {{ experience.ended_at|date:"Y" }}{% endif %}
+                                    {{ organization.started_at|date:"Y" }}{% if organization.ended_at and organization.ended_at|date:"Y" != organization.started_at|date:"Y" %} - {{ organization.ended_at|date:"Y" }}{% endif %}
                                 </p>
                             </div>
                         </div>
                         <div class="card-hover">
                             <div class="hover-header">
-                                <h3>{{ experience.title }} - {{ experience.category }}</h3>
+                                <h3>{{ organization.title }} - {{ organization.category }}</h3>
                             </div>
                             <ul class="hover-desc">
-                                <li>{{ experience.desc_1 }}</li>
-                                <li>{{ experience.desc_2 }}</li>
-                                <li>{{ experience.desc_3 }}</li>
+                                <li>{{ organization.desc_1 }}</li>
+                                <li>{{ organization.desc_2 }}</li>
+                                <li>{{ organization.desc_3 }}</li>
                             </ul>
                             <p class="hover-date">
-                                {{ experience.started_at|date:"Y" }}{% if experience.ended_at and experience.ended_at|date:"Y" != experience.started_at|date:"Y" %} - {{ experience.ended_at|date:"Y" }}{% endif %}
+                                {{ organization.started_at|date:"Y" }}{% if organization.ended_at and organization.ended_at|date:"Y" != organization.started_at|date:"Y" %} - {{ organization.ended_at|date:"Y" }}{% endif %}
                             </p>
                         </div>
                     </div>

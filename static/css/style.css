@@ -29,7 +29,7 @@ body {
     line-height: 1.6;
 }
 
-h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di setiap cardn*/
+h1, h2, h3, .brand { /* h2 untuk kata "Organization". h3 untuk nama jabatan di setiap cardn*/
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
@@ -192,13 +192,13 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
     border: 3px solid var(--accent);
 }
 
-/* Experience */
-.experience-section {
+/* Organization */
+.organization-section {
     padding: 4rem 0 6rem;
     background-color: var(--paper);
 }
 
-/* Untuk Experience */
+/* Untuk Organization */
 .section-title {
     font-size: 2.2rem;
     margin-bottom: 2.5rem;
@@ -206,14 +206,14 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
 }
 
 /* Akan ditampilkan sebanyak 6 card yang terbagi menjadi 2 kolom  */
-.experience-list {
+.organization-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
 }
 
 /* Untuk per card */
-.experience-card {
+.organization-card {
     position: relative;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     border: none;
@@ -276,11 +276,11 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
     transition: opacity 0.3s ease;
 }
 
-.experience-card:hover .card-normal {
+.organization-card:hover .card-normal {
     opacity: 0;
 }
 
-.experience-card:hover .card-hover {
+.organization-card:hover .card-hover {
     opacity: 1;
 }
 
@@ -322,7 +322,7 @@ h1, h2, h3, .brand { /* h2 untuk kata "Experience". h3 untuk nama jabatan di set
 
 /* Untuk 800px ke bawah, card akan ditampilkan secara vertikal dari atas ke bawah, tidak dibagi 2 lagi */
 @media (max-width: 800px) {
-    .experience-list {
+    .organization-list {
         grid-template-columns: 1fr;
     }
 }
