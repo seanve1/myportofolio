@@ -28,6 +28,7 @@ def show_organization(request):
 def show_education(request):
     data = Education.objects.all()
     context = {
+        'name': 'Jotham Seanvedi',
         'educations': data
     }
     return render(request, "education.html", context)
