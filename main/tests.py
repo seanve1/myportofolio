@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
-from main.models import Organization
+from main.models import Organization, Education
 
 class MainTest(TestCase):
     def setUp(self):
@@ -49,3 +49,23 @@ class MainTest(TestCase):
         self.organization.ended_at = timezone.now()
         self.organization.save()
         self.assertFalse(self.organization.is_ongoing)
+
+    def test_education_url_and_template(self):
+        response = self.client.get(reverse('main:show_education'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'education.html')
+
+    def test_education_empty_message(self):
+        response = self.client.get(reverse('main:show_education'))
+        self.assertContains(response, "Belum ada data pendidikan yang ditambahkan.")
+
+    def test_education_data_displayed(self):
+        Education.objects.create(
+            school_name="Universitas Indonesia",
+            degree="S1 Sistem Informasi",
+            start_year="2024",
+            end_year="2028"
+        )
+        response = self.client.get(reverse('main:show_education'))
+        self.assertContains(response, "Universitas Indonesia")
+        self.assertContains(response, "S1 Sistem Informasi")
