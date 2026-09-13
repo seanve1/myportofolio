@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .models import Organization
+from .models import Organization, Education
 
 
 def show_main(request):
@@ -24,3 +24,10 @@ def show_organization(request):
         "organization_list": Organization.objects.all(),
     }
     return render(request, "organization.html", context)
+
+def show_education(request):
+    data = Education.objects.all()
+    context = {
+        'educations': data
+    }
+    return render(request, "education.html", context)
