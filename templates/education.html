@@ -28,15 +28,16 @@
                 <div class="organization-list">
                     
                     {% for education in educations %}
-                    <div class="organization-card">
-                        <div class="card-normal">
-                            <div class="card-info">
-                                <h3>{{ education.school_name }}</h3>
-                                <p class="org-name">{{ education.degree }}</p>
-                                <p class="org-date">
-                                    {{ education.start_year }} - {% if education.end_year %}{{ education.end_year }}{% else %}Present{% endif %}
-                                </p>
-                            </div>
+                    <div class="education-card">
+                        {% if education.logo %}
+                        <img class="org-logo" src="{{ education.logo }}" alt="Logo {{ education.school_name }}" style="width: 70px; height: 70px; object-fit: contain;">
+                        {% endif %}
+                        <div class="card-info">
+                            <h3>{{ education.school_name }}</h3>
+                            <p class="org-name">{{ education.degree }}</p>
+                            <p class="org-date">
+                                {{ education.start_year }} - {% if education.end_year %}{{ education.end_year }}{% else %}Present{% endif %}
+                            </p>
                         </div>
                     </div>
                     {% empty %}
