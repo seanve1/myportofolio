@@ -1,108 +1,108 @@
 [
-{
-  "model": "main.organization",
-  "pk": "10f7bf7c-43d7-4b6b-9be5-8cafe2aa6503",
-  "fields": {
-    "title": "Member of Product & Project Management",
-    "category": "RISTEK Fasilkom UI",
-    "desc_1": "Executed shared responsibilities across product and project lifecycles.",
-    "desc_2": "Participated in integrated management and technical training programs.",
-    "desc_3": "Strengthened career readiness through practical project management expertise.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/RISTEK.png",
-    "started_at": "2026-01-01T14:04:13Z",
-    "ended_at": "2027-01-01T14:04:15Z"
+  {
+    "model": "main.organization",
+    "pk": "10f7bf7c-43d7-4b6b-9be5-8cafe2aa6503",
+    "fields": {
+      "title": "Member of Product & Project Management",
+      "category": "RISTEK Fasilkom UI",
+      "desc_1": "Executed shared responsibilities across product and project lifecycles.",
+      "desc_2": "Participated in integrated management and technical training programs.",
+      "desc_3": "Strengthened career readiness through practical project management expertise.",
+      "thumbnail": "/static/img/RISTEK.png",
+      "started_at": "2026-01-01T14:04:13Z",
+      "ended_at": "2027-01-01T14:04:15Z"
+    }
+  },
+  {
+    "model": "main.organization",
+    "pk": "81c65906-7ae0-4a28-83db-1f6f90ff6420",
+    "fields": {
+      "title": "Vice Project Officer",
+      "category": "Open House Fasilkom UI 2026",
+      "desc_1": "Plan structure and prepare pre-event administrative documents.",
+      "desc_2": "Supervise execution and resolve on-site operational issues.",
+      "desc_3": "Evaluate overall performance and compile final reports.",
+      "thumbnail": "/static/img/OH26.png",
+      "started_at": "2026-01-01T14:09:51Z",
+      "ended_at": "2026-12-31T14:09:59Z"
+    }
+  },
+  {
+    "model": "main.organization",
+    "pk": "ebfe4481-23c3-4cde-9f1b-9a314aa96c12",
+    "fields": {
+      "title": "Staff of Product Management Academy",
+      "category": "COMPFEST 18",
+      "desc_1": "Approached and secured mentors and keynote speakers.",
+      "desc_2": "Managed the end-to-end mentee selection process.",
+      "desc_3": "Facilitated operations throughout the product camp.",
+      "thumbnail": "/static/img/COMPFEST.png",
+      "started_at": "2026-01-01T14:10:58Z",
+      "ended_at": "2026-12-31T14:11:17Z"
+    }
+  },
+  {
+    "model": "main.organization",
+    "pk": "3e5273e2-0818-42fa-83fd-580a3cfda33d",
+    "fields": {
+      "title": "Person In Charge of Event",
+      "category": "BETIS Fasilkom UI 2026",
+      "desc_1": "Maximized human resources and organizational capital.",
+      "desc_2": "Conducted periodic individual performance reviews.",
+      "desc_3": "Evaluated departmental efficiency and productivity.",
+      "thumbnail": "/static/img/BETIS.png",
+      "started_at": "2026-01-01T14:12:12Z",
+      "ended_at": "2026-12-31T14:17:20Z"
+    }
+  },
+  {
+    "model": "main.organization",
+    "pk": "da238fdd-7c48-4212-be5b-544c15bdaca4",
+    "fields": {
+      "title": "People Operations Core Team",
+      "category": "Google Developer Groups on Campus Universitas Indonesia",
+      "desc_1": "Maximized human resources across the organization.",
+      "desc_2": "Evaluated individual performance on regular basis.",
+      "desc_3": "Conducted periodic departmental and division reviews.",
+      "thumbnail": "/static/img/GDGoCUI.jpg",
+      "started_at": "2025-01-01T14:18:20Z",
+      "ended_at": "2026-01-01T14:18:25Z"
+    }
+  },
+  {
+    "model": "main.organization",
+    "pk": "d9b40d3c-4ff6-4c3c-93f6-944fc6976d6a",
+    "fields": {
+      "title": "Human Resources of IT Development",
+      "category": "Open House Fasilkom UI 2025",
+      "desc_1": "Supported internal management and division engagement.",
+      "desc_2": "Monitored progress and compiled evaluation reports.",
+      "desc_3": "Organized internal events to strengthen collaboration.",
+      "thumbnail": "/static/img/OH25.png",
+      "started_at": "2025-01-01T14:20:48Z",
+      "ended_at": "2025-12-31T14:20:53Z"
+    }
+  },
+  {
+    "model": "main.education",
+    "pk": "378b03b0-6ae5-471a-9167-159a5dcb551b",
+    "fields": {
+      "school_name": "Universitas Indonesia",
+      "degree": "Bachelor of Information Systems, Faculty of Computer Science",
+      "start_year": "2025",
+      "end_year": "",
+      "logo": "/static/img/UI.png"
+    }
+  },
+  {
+    "model": "main.education",
+    "pk": "cccc7b46-f8f5-4128-954f-3fa58822e9db",
+    "fields": {
+      "school_name": "SMA Kristen Kalam Kudus Pematangsiantar",
+      "degree": "Mathematics and Natural Sciences Department",
+      "start_year": "2022",
+      "end_year": "2025",
+      "logo": "/static/img/KalamKudus.png"
+    }
   }
-},
-{
-  "model": "main.organization",
-  "pk": "3e5273e2-0818-42fa-83fd-580a3cfda33d",
-  "fields": {
-    "title": "Person In Charge of Event",
-    "category": "BETIS Fasilkom UI 2026",
-    "desc_1": "Maximized human resources and organizational capital.",
-    "desc_2": "Conducted periodic individual performance reviews.",
-    "desc_3": "Evaluated departmental efficiency and productivity.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/BETIS.png",
-    "started_at": "2026-01-01T14:12:12Z",
-    "ended_at": "2026-12-31T14:17:20Z"
-  }
-},
-{
-  "model": "main.organization",
-  "pk": "81c65906-7ae0-4a28-83db-1f6f90ff6420",
-  "fields": {
-    "title": "Vice Project Officer",
-    "category": "Open House Fasilkom UI 2026",
-    "desc_1": "Plan structure and prepare pre-event administrative documents.",
-    "desc_2": "Supervise execution and resolve on-site operational issues.",
-    "desc_3": "Evaluate overall performance and compile final reports.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/OH26.png",
-    "started_at": "2026-01-01T14:09:51Z",
-    "ended_at": "2026-12-31T14:09:59Z"
-  }
-},
-{
-  "model": "main.organization",
-  "pk": "d9b40d3c-4ff6-4c3c-93f6-944fc6976d6a",
-  "fields": {
-    "title": "Human Resources of IT Development",
-    "category": "Open House Fasilkom UI 2025",
-    "desc_1": "Supported internal management and division engagement.",
-    "desc_2": "Monitored progress and compiled evaluation reports.",
-    "desc_3": "Organized internal events to strengthen collaboration.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/OH25.png",
-    "started_at": "2025-01-01T14:20:48Z",
-    "ended_at": "2025-12-31T14:20:53Z"
-  }
-},
-{
-  "model": "main.organization",
-  "pk": "da238fdd-7c48-4212-be5b-544c15bdaca4",
-  "fields": {
-    "title": "People Operations Core Team",
-    "category": "Google Developer Groups on Campus Universitas Indonesia",
-    "desc_1": "Maximized human resources across the organization.",
-    "desc_2": "Evaluated individual performance on regular basis.",
-    "desc_3": "Conducted periodic departmental and division reviews.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/GDGoCUI.jpg",
-    "started_at": "2025-01-01T14:18:20Z",
-    "ended_at": "2026-01-01T14:18:25Z"
-  }
-},
-{
-  "model": "main.organization",
-  "pk": "ebfe4481-23c3-4cde-9f1b-9a314aa96c12",
-  "fields": {
-    "title": "Staff of Product Management Academy",
-    "category": "COMPFEST 18",
-    "desc_1": "Approached and secured mentors and keynote speakers.",
-    "desc_2": "Managed the end-to-end mentee selection process.",
-    "desc_3": "Facilitated operations throughout the product camp.",
-    "thumbnail": "http://127.0.0.1:8000/static/img/COMPFEST.png",
-    "started_at": "2026-01-01T14:10:58Z",
-    "ended_at": "2026-12-31T14:11:17Z"
-  }
-},
-{
-  "model": "main.education",
-  "pk": "378b03b0-6ae5-471a-9167-159a5dcb551b",
-  "fields": {
-    "school_name": "Universitas Indonesia",
-    "degree": "Bachelor of Information Systems, Faculty of Computer Science",
-    "start_year": "2025",
-    "end_year": "",
-    "logo": "/static/img/UI.png"
-  }
-},
-{
-  "model": "main.education",
-  "pk": "cccc7b46-f8f5-4128-954f-3fa58822e9db",
-  "fields": {
-    "school_name": "SMA Kristen Kalam Kudus Pematangsiantar",
-    "degree": "Mathematics and Natural Sciences Department",
-    "start_year": "2022",
-    "end_year": "2025",
-    "logo": "/static/img/KalamKudus.png"
-  }
-}
 ]
