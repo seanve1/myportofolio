@@ -1,0 +1,74 @@
+<p class="organization-status">
+    <button
+        type="button"
+        class="button button-danger"
+        popovertarget="delete-organization-{{ organization.id }}"
+        aria-label="Hapus {{ organization.title }}"
+        title="Hapus organisasi"
+    >
+        Hapus Organization
+    </button>
+</p>
+
+<div
+    id="delete-organization-{{ organization.id }}"
+    class="organization-delete-modal"
+    popover="auto"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-organization-title-{{ organization.id }}"
+>
+    <button
+        type="button"
+        class="organization-delete-modal__backdrop"
+        popovertarget="delete-organization-{{ organization.id }}"
+        popovertargetaction="hide"
+        aria-label="Tutup konfirmasi hapus"
+    ></button>
+
+    <div class="organization-delete-modal__content">
+        <button
+            type="button"
+            class="organization-delete-modal__close"
+            popovertarget="delete-organization-{{ organization.id }}"
+            popovertargetaction="hide"
+            aria-label="Tutup konfirmasi hapus"
+        >
+            ×
+        </button>
+
+        <h2 id="delete-organization-title-{{ organization.id }}">
+            Hapus Organization?
+        </h2>
+
+        <p>
+            Apakah Anda yakin ingin menghapus
+            <strong>{{ organization.title }}</strong>?
+        </p>
+
+        <div class="organization-delete-modal__actions">
+            <button
+                type="button"
+                class="button button-secondary"
+                popovertarget="delete-organization-{{ organization.id }}"
+                popovertargetaction="hide"
+            >
+                Batal
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'main:delete_organization' organization.id %}"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="button button-danger"
+                >
+                    Ya, Hapus
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
