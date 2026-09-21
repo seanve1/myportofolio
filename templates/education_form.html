@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+
+{% block meta %}
+<title>
+    {% if form.instance.pk %}
+        Update Education - {{ name }}
+    {% else %}
+        Add Education - {{ name }}
+    {% endif %}
+</title>
+{% endblock meta %}
+
+{% block content %}
+
+<main>
+
+<section class="organization-section">
+
+<div class="container">
+
+<h1 class="section-title">
+
+{% if form.instance.pk %}
+
+Update Education
+
+{% else %}
+
+Add Education
+
+{% endif %}
+
+</h1>
+
+<form
+    method="post"
+    class="education-form"
+>
+
+{% csrf_token %}
+{% for field in form %}
+
+<div class="form-group">
+
+<label for="{{ field.id_for_label }}">
+
+{{ field.label }}
+
+</label>
+
+{{ field }}
+
+{% for error in field.errors %}
+
+<p class="form-error">
+
+{{ error }}
+
+</p>
+
+{% endfor %}
+
+</div>
+
+{% endfor %}
+
+<div class="form-actions">
+
+<button
+    type="submit"
+    class="button"
+>
+
+{% if form.instance.pk %}
+
+Update
+
+{% else %}
+
+Add
+
+{% endif %}
+
+</button>
+
+<a
+    href="{% url 'main:show_education' %}"
+    class="button button-secondary"
+>
+
+Cancel
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</section>
+
+</main>
+
+{% endblock content %}

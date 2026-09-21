@@ -646,3 +646,32 @@ h1, h2, h3, .brand { /* h2 untuk kata "Organization". h3 untuk nama jabatan di s
     gap: 0.75rem;
     margin-top: 1.5rem;
 }
+
+/* Education Form */
+.education-form {
+    width: 100%;
+    max-width: 700px;
+    margin-top: 1.5rem;
+}
+
+
+.education-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+
+.education-actions .button {
+    font-size: 0.85rem;
+}
+
+
+.button-danger {
+    background: #b42318;
+}
+
+
+.button-danger:hover {
+    background: #8f1c13;
+}

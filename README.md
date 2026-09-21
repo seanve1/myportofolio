@@ -40,3 +40,30 @@ Answer (from AI): Karena sebelumnya menggunakan class dasar yang sama, Anda perl
 
 --> selain nambahin data ke database langsung dari terminal (django shell), kita bisa tambahin datanya lewat halaman admin web ga sih?
 Answer (from AI): Bisa, Anda dapat menggunakan panel bawaan Django Admin. Caranya, buka file admin.py di aplikasi Anda lalu daftarkan modelnya dengan kode admin.site.register(Education). Setelah itu, buat akun admin di terminal menggunakan perintah python manage.py createsuperuser. Anda kemudian bisa login ke 127.0.0.1:8000/admin di peramban web untuk menambah dan mengelola data melalui tampilan antarmuka (UI).
+
+### Tugas 3
+1. ModelForm digunakan pada Django karena dapat membuat form secara otomatis berdasarkan model yang sudah dibuat. Dengan menggunakan ModelForm, setiap field pada form akan mengikuti struktur field yang ada pada model sehingga mengurangi penulisan kode HTML secara manual dan mempermudah proses validasi data. Selain itu, ModelForm juga memudahkan proses penyimpanan data karena data yang telah diisi pengguna dapat langsung disimpan ke database menggunakan fungsi `save()`. Penggunaan `{% csrf_token %}` diwajibkan pada form Django untuk memberikan perlindungan terhadap serangan Cross-Site Request Forgery (CSRF). Token ini memastikan bahwa request POST yang dikirim benar-benar berasal dari website yang sedang aktif dan bukan request palsu dari pihak lain.
+
+2. JSON lebih banyak digunakan dalam pengembangan aplikasi web modern dibandingkan XML karena memiliki struktur yang lebih sederhana, ukuran data yang lebih ringan, serta lebih mudah diproses oleh berbagai bahasa pemrograman. Selain itu, format JSON sangat cocok digunakan dalam REST API karena struktur key-value pada JSON mudah digunakan oleh frontend maupun backend.
+
+3. Pada saat data portofolio dikembalikan dalam bentuk JSON, Django terlebih dahulu mengambil data dari model/database, kemudian melakukan proses serialization untuk mengubah object Django menjadi format JSON yang dapat dikirim melalui HTTP response. Serialization diperlukan karena object yang berasal dari database belum dapat langsung dikirimkan sebagai response JSON. Setelah data diterima, proses deserialization dapat dilakukan untuk mengubah kembali data JSON menjadi object Django sehingga dapat digunakan kembali oleh aplikasi.
+
+**AI Disclosure:**
+
+Alat yang digunakan: ChatGPT.
+
+Saya menggunakan bantuan AI untuk memahami implementasi lanjutan Django pada topik Form & Data Delivery, khususnya dalam menyusun alur Create, Update, Delete, serta penyajian data dalam format JSON menggunakan ModelForm dan serialization. Saya memberikan potongan kode yang sudah saya buat sebelumnya dan meminta penjelasan mengenai struktur implementasi serta kemungkinan perbaikan.
+
+Struktur utama aplikasi, pemilihan model Education sebagai bagian yang dikembangkan, pengaturan routing, serta penyesuaian tampilan website tetap saya kerjakan dan pahami secara mandiri. Bantuan AI saya gunakan terutama untuk membantu mengecek urutan implementasi fitur CRUD, memahami hubungan antara view, form, URL, dan template, serta membantu melakukan debugging ketika terdapat kesalahan pada proses pengembangan.
+
+Beberapa saran dari AI tidak selalu langsung saya terapkan karena terkadang menghasilkan perubahan kode yang terlalu besar atau tidak sesuai dengan struktur project yang sudah saya bangun. Oleh karena itu, saya melakukan pengecekan ulang terhadap setiap saran, menyesuaikan nama class, struktur file, serta mempertahankan desain awal website agar tetap konsisten.
+
+Berikut merupakan beberapa chat yang saya ajukan ke AI:
+
+--> bagaimana cara membuat update form pada Django menggunakan ModelForm dengan data yang sudah ada?
+
+Answer (from AI): Update form pada Django dapat dilakukan dengan memberikan parameter `instance` pada ModelForm. Dengan instance tersebut, Django akan mengambil data lama berdasarkan object yang dipilih dan mengisi nilai tersebut ke dalam form sehingga pengguna dapat memperbarui data tanpa membuat data baru.
+
+--> bagaimana cara mengubah data Django menjadi JSON lalu menampilkannya kembali di halaman web?
+
+Answer (from AI): Data dari model Django dapat diubah menjadi JSON menggunakan serializer. Setelah dikirim sebagai response, data tersebut dapat diproses kembali menggunakan deserialization untuk mengubah format JSON menjadi object Django yang dapat digunakan kembali oleh template.

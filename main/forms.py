@@ -1,7 +1,6 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput, DateTimeInput
 
-from main.models import Organization
-
+from main.models import Organization, Education
 
 class OrganizationForm(ModelForm):
     class Meta:
@@ -80,6 +79,62 @@ class OrganizationForm(ModelForm):
             "ended_at": DateTimeInput(
                 attrs={
                     "type": "datetime-local",
+                }
+            ),
+        }
+
+class EducationForm (ModelForm):
+    class Meta:
+        model = Education
+
+        fields = [
+            "school_name",
+            "degree",
+            "start_year",
+            "end_year",
+            "logo",
+        ]
+
+        labels = {
+            "school_name": "School Name",
+            "degree": "Degree",
+            "start_year": "Start Year",
+            "end_year": "End Year",
+            "logo": "Logo URL",
+        }
+
+        widgets = {
+            "school_name": TextInput(
+                attrs={
+                    "placeholder": "Universitas Indonesia",
+                    "maxlength": 255,
+                }
+            ),
+
+            "degree": TextInput(
+                attrs={
+                    "placeholder": "S1 Sistem Informasi",
+                    "maxlength": 255,
+                }
+            ),
+
+            "start_year": TextInput(
+                attrs={
+                    "placeholder": "2025",
+                    "maxlength": 4,
+                }
+            ),
+
+            "end_year": TextInput(
+                attrs={
+                    "placeholder": "2029",
+                    "maxlength": 4,
+                }
+            ),
+
+            "logo": URLInput(
+                attrs={
+                    "placeholder": "https://example.com/logo.png",
                 }
             ),
         }
