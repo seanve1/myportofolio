@@ -126,7 +126,7 @@ def get_organizations_json(request):
     if title_query:
         organizations = organizations.filter(title__icontains=title_query)
 
-    organizations_json = serializers.serialize("json", organizations)
+    organizations_json = serializers.serialize("json", organizations, use_natural_foreign_keys=True)
 
     return HttpResponse(
         organizations_json,
