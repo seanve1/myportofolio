@@ -93,6 +93,12 @@
                             {% endif %}
                         </p>
 
+                        {% if user.is_superuser or is_editor %}
+                        <a href="{% url 'main:update_organization' organization.id %}" class="button">
+                            Update Organization
+                        </a>
+                        {% endif %}
+
                         {% include "components/organization_star.html" with organization=organization %}
 
                         {% if user.is_superuser %}

@@ -67,3 +67,30 @@ Answer (from AI): Update form pada Django dapat dilakukan dengan memberikan para
 --> bagaimana cara mengubah data Django menjadi JSON lalu menampilkannya kembali di halaman web?
 
 Answer (from AI): Data dari model Django dapat diubah menjadi JSON menggunakan serializer. Setelah dikirim sebagai response, data tersebut dapat diproses kembali menggunakan deserialization untuk mengubah format JSON menjadi object Django yang dapat digunakan kembali oleh template.
+
+### Tugas 4
+
+Pada Individual Assignment 4, saya melanjutkan pengembangan website portofolio dengan menerapkan sistem authentication, session, cookie, dan authorization menggunakan Django. Implementasi dilakukan dengan memanfaatkan sistem autentikasi bawaan Django untuk mengelola pengguna, serta menambahkan pembagian hak akses berdasarkan role pengguna.
+
+Pada tugas ini, saya menambahkan role Editor menggunakan Django Group. Role Editor memiliki hak untuk memperbarui data organization, tetapi tidak memiliki izin untuk membuat atau menghapus data. Sementara itu, superuser tetap memiliki seluruh hak akses sebagai pemilik portofolio.
+
+Selain pengaturan hak akses, saya juga mengembangkan fitur interaktif star pada Organization menggunakan relasi ManyToManyField antara User dan Organization. Fitur ini memungkinkan pengguna yang sudah login memberikan atau membatalkan star dengan mekanisme POST yang dilindungi CSRF token.
+
+Pengujian dilakukan menggunakan Selenium End-to-End Test untuk memastikan proses login, session, cookie, dan pembatasan akses berdasarkan role berjalan sesuai kebutuhan.
+
+**AI Disclosure:**
+
+Alat yang digunakan: ChatGPT.
+
+Saya menggunakan bantuan AI untuk memahami implementasi lanjutan Django pada topik authentication, session, cookie, dan authorization. Bantuan AI digunakan untuk membantu debugging ketika terdapat masalah pada routing, permission, serta implementasi role Editor menggunakan Django Group.
+
+Struktur aplikasi, pemilihan model Organization sebagai objek yang dikembangkan, desain antarmuka, serta keputusan pembagian hak akses tetap saya kerjakan dan sesuaikan secara mandiri. Setiap saran dari AI diperiksa kembali dan tidak langsung diterapkan tanpa penyesuaian terhadap struktur project yang sudah ada.
+
+Beberapa saran AI terkadang menghasilkan perubahan kode yang terlalu besar atau tidak sesuai dengan desain awal website. Oleh karena itu, saya melakukan evaluasi ulang, mempertahankan kode yang sudah berjalan, dan hanya menerapkan bagian yang relevan untuk menyelesaikan kebutuhan implementasi.
+
+Berikut merupakan beberapa chat yang saya ajukan ke AI:
+
+--> bagaimana membatasi akses create update delete berdasarkan role pengguna?
+
+Answer (from AI):
+Pembatasan akses tidak cukup hanya dilakukan pada template. Validasi harus dilakukan pada sisi server melalui view agar pengguna yang mencoba mengakses URL secara langsung tetap mendapatkan penolakan apabila tidak memiliki permission.

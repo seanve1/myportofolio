@@ -11,6 +11,7 @@ from main.views import (
     create_organization,
     get_organizations_json,
     delete_organization,
+    update_organization,
 
     show_education,
     create_education,
@@ -89,6 +90,12 @@ urlpatterns = [
         "education/add/",
         create_education,
         name="create_education"
+    ),
+
+    path(
+        "organization/<uuid:organization_id>/update/",
+        update_organization,
+        name="update_organization"
     ),
 
     path(

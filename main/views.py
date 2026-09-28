@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
@@ -12,6 +13,10 @@ import datetime
 from .models import Organization, Education
 from .forms import OrganizationForm, EducationForm
 
+def is_editor(user):
+    return user.groups.filter(
+        name="Editor"
+    ).exists()
 
 def show_main(request):
     last_login = request.COOKIES.get(
@@ -95,6 +100,7 @@ def show_organization(request):
         "name": "Jotham Seanvedi Takin Allo",
         "organization_list": organizations,
         "title_query": title_query,
+        "is_editor": is_editor(request.user)
     }
 
     return render(request, "organization.html", context)
@@ -151,6 +157,47 @@ def delete_organization(request, organization_id):
             "Organization berhasil dihapus!"
         )
     return redirect("main:show_organization")
+
+@login_required(login_url="/login/")
+def update_organization(request, organization_id):
+    if not (
+        request.user.is_superuser
+        or is_editor(request.user)
+    ):
+        raise PermissionDenied
+
+    organization = get_object_or_404(
+        Organization,
+        pk=organization_id
+    )
+
+    form = OrganizationForm(
+        request.POST or None,
+        instance=organization
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+
+        messages.success(
+            request,
+            "Organization berhasil diperbarui!"
+        )
+
+        return redirect(
+            "main:show_organization"
+        )
+
+    context = {
+        "name": "Jotham Seanvedi Takin Allo",
+        "form": form,
+    }
+
+    return render(
+        request,
+        "organization_form.html",
+        context
+    )
 
 @login_required(login_url="/login/")
 def toggle_star(request, organization_id):
