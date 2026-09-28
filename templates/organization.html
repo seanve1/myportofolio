@@ -11,10 +11,12 @@
 
             <div class="organization-header">
                 <h2 class="section-title">Organization</h2>
+                {% if user.is_superuser %}
                 <a href="{% url 'main:create_organization' %}" class="button organization-add-button">
                     <span aria-hidden="true">+</span>
                     Tambah Organization
                 </a>
+                {% endif %}
             </div>
 
             <form method="get" action="{% url 'main:show_organization' %}" class="organization-search">
@@ -83,7 +85,6 @@
                             <li>{{ organization.desc_3 }}</li>
                             {% endif %}
                         </ul>
-
                         <p class="hover-date">
                             {{ organization.started_at|date:"Y" }}
 
@@ -91,7 +92,12 @@
                                 - {{ organization.ended_at|date:"Y" }}
                             {% endif %}
                         </p>
-                        {% include "components/organization_delete_modal.html" with organization=organization %}
+
+                        {% include "components/organization_star.html" with organization=organization %}
+
+                        {% if user.is_superuser %}
+                            {% include "components/organization_delete_modal.html" with organization=organization %}
+                        {% endif %}
                     </div>
                 </div>
                 {% empty %}

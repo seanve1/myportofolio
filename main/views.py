@@ -1,13 +1,24 @@
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+
+import datetime
 
 from .models import Organization, Education
 from .forms import OrganizationForm, EducationForm
 
 
 def show_main(request):
+    last_login = request.COOKIES.get(
+        "last_login",
+        "Belum ada sesi login/Cookie tidak ditemukan"
+    )
+
     context = {
         "name": "Jotham Seanvedi Takin Allo",
         "npm": "2506584161",
@@ -18,8 +29,54 @@ def show_main(request):
             "I am someone who is always eager to learn, persistent in every effort, and forward-looking in seeking opportunities for growth. "
             "With a mindset focused on continuous improvement, I embrace challenges as chances to develop myself and contribute meaningfully in both academic and professional fields"
         ),
+        "last_login": last_login,
     }
     return render(request, "index.html", context)
+
+def register(request):
+    form = UserCreationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Akun berhasil dibuat. Silakan login.")
+        return redirect("main:login")
+
+    context = {
+        "name": "Jotham Seanvedi Takin Allo",
+        "form": form,
+    }
+
+    return render(request, "register.html", context)
+
+def login_user(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        login(request, user)
+
+        response = redirect("main:show_main")
+        response.set_cookie(
+            "last_login",
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+        return response
+
+    context = {
+        "name": "Jotham Seanvedi Takin Allo",
+        "form": form,
+    }
+
+    return render(request, "login.html", context)
+
+def logout_user(request):
+    logout(request)
+
+    response = redirect("main:show_main")
+    response.delete_cookie("last_login")
+
+    return response
 
 # Organization
 def show_organization(request):
@@ -42,10 +99,13 @@ def show_organization(request):
 
     return render(request, "organization.html", context)
 
-
+@login_required(login_url="/login/")
 def create_organization(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     form = OrganizationForm(request.POST or None)
-
+    
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Organisasi baru berhasil ditambahkan!")
@@ -73,7 +133,11 @@ def get_organizations_json(request):
         content_type="application/json"
     )
 
+@login_required(login_url="/login/")
 def delete_organization(request, organization_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     organization = get_object_or_404(
         Organization,
         pk=organization_id
@@ -86,6 +150,21 @@ def delete_organization(request, organization_id):
             request,
             "Organization berhasil dihapus!"
         )
+    return redirect("main:show_organization")
+
+@login_required(login_url="/login/")
+def toggle_star(request, organization_id):
+    organization = get_object_or_404(
+        Organization,
+        pk=organization_id
+    )
+
+    if request.method == "POST":
+        if request.user in organization.starred_by.all():
+            organization.starred_by.remove(request.user)
+        else:
+            organization.starred_by.add(request.user)
+
     return redirect("main:show_organization")
 
 # Education

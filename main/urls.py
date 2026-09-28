@@ -2,6 +2,11 @@ from django.urls import path
 from main.views import (
     show_main,
 
+    register,
+    login_user,
+    logout_user,
+    toggle_star,
+
     show_organization,
     create_organization,
     get_organizations_json,
@@ -24,6 +29,23 @@ urlpatterns = [
         name="show_main"
     ),
 
+    path(
+        "register/",
+        register,
+        name="register"
+    ),
+
+    path(
+        "login/",
+        login_user,
+        name="login"
+    ),
+
+    path(
+        "logout/",
+        logout_user,
+        name="logout"
+    ),
 
     # ORGANIZATION
     path(
@@ -50,6 +72,11 @@ urlpatterns = [
         name="get_organizations_json"
     ),
 
+    path(
+        "organization/<uuid:organization_id>/star/",
+        toggle_star,
+        name="toggle_star"
+    ),
 
     # EDUCATION
     path(

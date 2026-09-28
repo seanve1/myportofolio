@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block meta %}
+<title>Register - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+
+<main>
+    <section class="organization-section">
+        <div class="container">
+
+            <h1 class="section-title">
+                Create Account
+            </h1>
+
+            <form
+                method="post"
+                action="{% url 'main:register' %}"
+                class="organization-form"
+            >
+
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="form-group">
+
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                    <p class="form-error">
+                        {{ error }}
+                    </p>
+                    {% endfor %}
+
+                    {% if field.help_text %}
+                    <small>
+                        {{ field.help_text }}
+                    </small>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+
+
+                <button
+                    type="submit"
+                    class="button"
+                >
+                    Register
+                </button>
+
+            </form>
+
+
+            <p>
+                Already have an account?
+                <a href="{% url 'main:login' %}">
+                    Login here
+                </a>
+            </p>
+
+
+        </div>
+    </section>
+</main>
+
+{% endblock content %}

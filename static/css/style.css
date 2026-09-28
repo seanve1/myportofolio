@@ -218,7 +218,8 @@ h1, h2, h3, .brand { /* h2 untuk kata "Organization". h3 untuk nama jabatan di s
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     border: none;
     border-radius: var(--radius);
-    height: 340px; 
+    min-height: 340px;
+    height: auto;
     overflow: hidden;
     cursor: default;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -282,6 +283,11 @@ h1, h2, h3, .brand { /* h2 untuk kata "Organization". h3 untuk nama jabatan di s
 
 .organization-card:hover .card-hover {
     opacity: 1;
+}
+
+.card-info h3,
+.hover-header h3 {
+    overflow-wrap: break-word;
 }
 
 .hover-header h3 {
@@ -674,4 +680,29 @@ h1, h2, h3, .brand { /* h2 untuk kata "Organization". h3 untuk nama jabatan di s
 
 .button-danger:hover {
     background: #8f1c13;
+}
+
+.nav-user {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.form-message {
+    margin: 1rem auto;
+    padding: 0.75rem 1rem;
+    max-width: 960px;
+    border-radius: var(--radius);
+    background-color: #edf2f7;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.star-form {
+    margin-top: 0.75rem;
+    display: inline;
+}
+
+.star-form .button {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
 }

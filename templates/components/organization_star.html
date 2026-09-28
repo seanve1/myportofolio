@@ -1,0 +1,24 @@
+<form
+    method="post"
+    action="{% url 'main:toggle_star' organization.id %}"
+    class="star-form"
+>
+
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="button"
+    >
+
+        {% if user in organization.starred_by.all %}
+            Unstar
+        {% else %}
+            Star
+        {% endif %}
+
+        ({{ organization.starred_by.count }})
+
+    </button>
+
+</form>
