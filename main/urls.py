@@ -9,6 +9,7 @@ from main.views import (
 
     show_organization,
     create_organization,
+    create_organization_ajax,
     get_organizations_json,
     delete_organization,
     update_organization,
@@ -59,6 +60,12 @@ urlpatterns = [
         "organization/add/",
         create_organization,
         name="create_organization"
+    ),
+
+    path(
+        "organization/add-ajax/",
+        create_organization_ajax,
+        name="create_organization_ajax"
     ),
 
     path(

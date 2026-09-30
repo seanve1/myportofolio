@@ -5,7 +5,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 
 import datetime
@@ -85,22 +86,13 @@ def logout_user(request):
 
 # Organization
 def show_organization(request):
-    json_response = get_organizations_json(request)
-
-    organizations = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-
-    organizations = [organization.object for organization in organizations]
-
     title_query = request.GET.get("title", "").strip()
 
     context = {
         "name": "Jotham Seanvedi Takin Allo",
-        "organization_list": organizations,
         "title_query": title_query,
-        "is_editor": is_editor(request.user)
+        "is_editor": is_editor(request.user),
+        "form": OrganizationForm(),
     }
 
     return render(request, "organization.html", context)
@@ -124,20 +116,75 @@ def create_organization(request):
 
     return render(request, "organization_form.html", context)
 
+@require_POST
+def create_organization_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan organization."},
+            status=403,
+        )
+
+    form = OrganizationForm(request.POST)
+
+    if form.is_valid():
+        organization = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Organization berhasil ditambahkan.",
+                "pk": str(organization.id)
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {
+            "errors": form.errors.get_json_data()
+        },
+        status=400
+    )
+
 def get_organizations_json(request):
     title_query = request.GET.get("title", "").strip()
 
-    organizations = Organization.objects.all()
+    organizations = Organization.objects.prefetch_related("starred_by").all()
 
     if title_query:
         organizations = organizations.filter(title__icontains=title_query)
 
-    organizations_json = serializers.serialize("json", organizations, use_natural_foreign_keys=True)
+    data = []
 
-    return HttpResponse(
-        organizations_json,
-        content_type="application/json"
-    )
+    for organization in organizations:
+        starred_users = organization.starred_by.all()
+
+        is_starred = (request.user in starred_users if request.user.is_authenticated else False)
+
+        starred_by_names = ", ".join([user.username for user in starred_users])
+
+        data.append(
+            {
+                "pk": str(organization.id),
+                "fields": {
+                    "title": organization.title,
+                    "category": organization.category,
+                    "desc_1": organization.desc_1,
+                    "desc_2": organization.desc_2,
+                    "desc_3": organization.desc_3,
+                    "thumbnail": organization.thumbnail,
+                    "started_at": organization.started_at.strftime("%Y")
+                    if organization.started_at
+                    else "",
+                    "ended_at": organization.ended_at.strftime("%Y")
+                    if organization.ended_at
+                    else "",
+                    "star_count": starred_users.count(),
+                    "is_starred": is_starred,
+                    "starred_by_names": starred_by_names,
+                }
+            }
+        )
+
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
 def delete_organization(request, organization_id):
@@ -212,7 +259,11 @@ def toggle_star(request, organization_id):
         else:
             organization.starred_by.add(request.user)
 
-    return redirect("main:show_organization")
+    return JsonResponse(
+        {
+            "message": "Star berhasil diperbarui."
+        }
+    )
 
 # Education
 def show_education(request):

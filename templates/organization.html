@@ -12,12 +12,20 @@
             <div class="organization-header">
                 <h2 class="section-title">Organization</h2>
                 {% if user.is_superuser %}
-                <a href="{% url 'main:create_organization' %}" class="button organization-add-button">
+                <button
+                    type="button"
+                    class="button organization-add-button"
+                    popovertarget="add-organization-modal"
+                >
                     <span aria-hidden="true">+</span>
                     Tambah Organization
-                </a>
+                </button>
                 {% endif %}
             </div>
+
+            <button class="button button-secondary" onclick="showToast('Notifikasi Sistem', 'Organization berhasil dimuat!', 'success')">
+                Test Toast
+            </button>
 
             <form method="get" action="{% url 'main:show_organization' %}" class="organization-search">
                 <input
@@ -37,90 +45,257 @@
                 </button>
             </form>
 
-            <div class="organization-list">
-                {% for organization in organization_list %}
-                <div class="organization-card">
-                    <div class="card-normal">
-                        {% if organization.thumbnail %}
-                        <img
-                            class="org-logo"
-                            src="{{ organization.thumbnail }}"
-                            alt="Logo {{ organization.category }}"
-                        >
-                        {% endif %}
+            <div id="loading" class="empty-state hide">
+                <p>Memuat organization...</p>
+            </div>
 
-                        <div class="card-info">
-                            <h3>{{ organization.title }}</h3>
-                            <p class="org-name">{{ organization.category }}</p>
+            <div id="error" class="empty-state hide">
+                <p>Gagal memuat data organization. Silakan coba lagi.</p>
+            </div>
 
-                            <p class="org-date">
-                                {{ organization.started_at|date:"Y" }}
+            <div id="empty" class="empty-state hide">
+                <p>Belum ada organization yang ditambahkan atau ditemukan.</p>
+            </div>
 
-                                {% if organization.ended_at and organization.ended_at|date:"Y" != organization.started_at|date:"Y" %}
-                                    - {{ organization.ended_at|date:"Y" }}
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card-hover">
-                        <div class="hover-header">
-                            <h3>
-                                {{ organization.title }}
-                                -
-                                {{ organization.category }}
-                            </h3>
-                        </div>
-
-                        <ul class="hover-desc">
-                            {% if organization.desc_1 %}
-                            <li>{{ organization.desc_1 }}</li>
-                            {% endif %}
-
-                            {% if organization.desc_2 %}
-                            <li>{{ organization.desc_2 }}</li>
-                            {% endif %}
-
-                            {% if organization.desc_3 %}
-                            <li>{{ organization.desc_3 }}</li>
-                            {% endif %}
-                        </ul>
-                        <p class="hover-date">
-                            {{ organization.started_at|date:"Y" }}
-
-                            {% if organization.ended_at and organization.ended_at|date:"Y" != organization.started_at|date:"Y" %}
-                                - {{ organization.ended_at|date:"Y" }}
-                            {% endif %}
-                        </p>
-
-                        {% if user.is_superuser or is_editor %}
-                        <a href="{% url 'main:update_organization' organization.id %}" class="button">
-                            Update Organization
-                        </a>
-                        {% endif %}
-
-                        {% include "components/organization_star.html" with organization=organization %}
-
-                        {% if user.is_superuser %}
-                            {% include "components/organization_delete_modal.html" with organization=organization %}
-                        {% endif %}
-                    </div>
-                </div>
-                {% empty %}
-                    {% if title_query %}
-                    <p class="empty-state" style="grid-column: 1 / -1;">
-                        Tidak ada organization dengan nama atau posisi tersebut.
-                    </p>
-
-                    {% else %}
-
-                    <p class="empty-state" style="grid-column: 1 / -1;">
-                        Belum ada pengalaman yang ditambahkan.
-                    </p>
-                    {% endif %}
-                {% endfor %}
+            <div class="organization-list" id="organization-grid">
+                
             </div>
         </div>
     </section>
 </main>
+<script>
+const BASE_ORGANIZATIONS_ENDPOINT = "{% url 'main:get_organizations_json' %}";
+const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
+
+const gridContainer = document.getElementById('organization-grid');
+const loadingState = document.getElementById('loading');
+const errorState = document.getElementById('error');
+const emptyState = document.getElementById('empty');
+
+function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+    loadingState.classList.toggle('hide', !showLoading);
+    errorState.classList.toggle('hide', !showError);
+    emptyState.classList.toggle('hide', !showEmpty);
+    gridContainer.classList.toggle('hide', !showGrid);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function buildOrganizationCardElement(item) {
+    const organization = item.fields;
+    const organizationId = item.pk;
+
+    const articleElement = document.createElement('div');
+    articleElement.className = 'organization-card';
+
+    const updateUrl = "{% url 'main:update_organization' '00000000-0000-0000-0000-000000000000' %}"
+        .replace('00000000-0000-0000-0000-000000000000', organizationId);
+
+    const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
+        .replace('00000000-0000-0000-0000-000000000000', organizationId);
+
+    const deleteUrl = "{% url 'main:delete_organization' '00000000-0000-0000-0000-000000000000' %}"
+        .replace('00000000-0000-0000-0000-000000000000', organizationId);
+
+    const starText = organization.is_starred ? "Unstar" : "Star";
+
+    const updateHtml = (IS_SUPERUSER || IS_EDITOR)
+        ? `<a href="${updateUrl}" class="button">Update Organization</a>`
+        : '';
+    
+    const deleteHtml = IS_SUPERUSER
+        ? `<form method="post" action="${deleteUrl}">
+            {% csrf_token %}
+            <button type="submit" class="button">
+                Hapus Organization
+            </button>
+        </form>`
+        : '';
+
+    const starHtml = `
+        <button
+            type="button"
+            class="button star-button"
+            data-id="${organizationId}"
+        >
+            ${starText} (${organization.star_count})
+        </button>
+    `;
+
+    articleElement.innerHTML = `
+        <div class="card-normal">
+            ${organization.thumbnail
+                ? `<img class="org-logo" src="${escapeHtml(organization.thumbnail)}" alt="Logo ${escapeHtml(organization.category)}">`
+                : ''
+            }
+
+            <div class="card-info">
+                <h3>${escapeHtml(organization.title)}</h3>
+                <p class="org-name">${escapeHtml(organization.category)}</p>
+                <p class="org-date">
+                    ${organization.started_at}
+                    ${organization.ended_at && organization.started_at !== organization.ended_at
+                        ? ` - ${organization.ended_at}`
+                        : ''
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="card-hover">
+            <div class="hover-header">
+                <h3>
+                    ${escapeHtml(organization.title)}
+                    -
+                    ${escapeHtml(organization.category)}
+                </h3>
+            </div>
+
+            <ul class="hover-desc">
+                ${organization.desc_1 ? `<li>${escapeHtml(organization.desc_1)}</li>` : ''}
+                ${organization.desc_2 ? `<li>${escapeHtml(organization.desc_2)}</li>` : ''}
+                ${organization.desc_3 ? `<li>${escapeHtml(organization.desc_3)}</li>` : ''}
+            </ul>
+
+            <p class="hover-date">
+                ${organization.started_at}
+                ${organization.ended_at && organization.started_at !== organization.ended_at
+                    ? ` - ${organization.ended_at}`
+                    : ''
+                }
+            </p>
+
+            ${updateHtml}
+            ${starHtml}
+            ${deleteHtml}
+        </div>
+    `;
+
+    return articleElement;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+async function toggleStar(organizationId) {
+
+    const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
+        .replace('00000000-0000-0000-0000-000000000000', organizationId);
+
+
+    await fetch(starUrl, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    });
+
+    fetchOrganizations(searchInput.value.trim());
+}
+
+gridContainer.addEventListener(
+    "click",
+    function(e) {
+        if (e.target.classList.contains("star-button")) {
+            e.preventDefault();
+            toggleStar(
+                e.target.dataset.id
+            );
+        }
+    }
+);
+
+async function fetchOrganizations(searchQuery = "") {
+    try {
+        displayPageSection({ showLoading: true });
+
+        const url = searchQuery
+            ? `${BASE_ORGANIZATIONS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
+            : BASE_ORGANIZATIONS_ENDPOINT;
+
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        }
+
+        const organizationData = await response.json();
+
+        if (organizationData.length === 0) {
+            displayPageSection({ showEmpty: true });
+        } else {
+            gridContainer.innerHTML = '';
+
+            organizationData.forEach(item => {
+                gridContainer.appendChild(
+                    buildOrganizationCardElement(item)
+                );
+            });
+
+            displayPageSection({ showGrid: true });
+        }
+
+    } catch (error) {
+        console.error('Error loading organizations:', error);
+        displayPageSection({ showError: true });
+    }
+}
+
+const searchForm = document.querySelector('.organization-search');
+const searchInput = document.querySelector('.organization-search__input');
+
+const SEARCH_DEBOUNCE_DELAY = 300;
+let searchDebounceTimer;
+
+function searchOrganizations() {
+    fetchOrganizations(searchInput.value.trim());
+}
+
+searchInput.addEventListener("input", function() {
+    clearTimeout(searchDebounceTimer);
+
+    searchDebounceTimer = setTimeout(function() {
+        searchOrganizations();
+    }, SEARCH_DEBOUNCE_DELAY);
+});
+
+
+searchForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearTimeout(searchDebounceTimer);
+    searchOrganizations();
+});
+
+
+fetchOrganizations(searchInput.value.trim());
+</script>
+
 {% endblock content %}
