@@ -94,3 +94,26 @@ Berikut merupakan beberapa chat yang saya ajukan ke AI:
 
 Answer (from AI):
 Pembatasan akses tidak cukup hanya dilakukan pada template. Validasi harus dilakukan pada sisi server melalui view agar pengguna yang mencoba mengakses URL secara langsung tetap mendapatkan penolakan apabila tidak memiliki permission.
+
+### Tugas 5
+Pada Individual Assignment 5, saya melanjutkan pengembangan website portofolio dengan menerapkan interaktivitas web modern berbasis JavaScript secara *end-to-end* pada bagian Education. Implementasi ini mencakup pemuatan data menggunakan AJAX (Fetch API) tanpa me-*reload* halaman, fitur pencarian dinamis dengan teknik *debouncing*, serta penambahan data baru melalui modal *popover* yang mengirimkan data secara asinkronus. Selain itu, saya juga mengintegrasikan sistem notifikasi *toast* untuk umpan balik pengguna, menerapkan perlindungan keamanan dari serangan *Cross-Site Scripting* (XSS) melalui *escaping* di sisi *frontend* dan `strip_tags` di *backend*, serta mempertahankan pembagian hak akses sesuai peran pengguna dari tugas sebelumnya.
+
+**AI Disclosure:**
+
+Alat yang digunakan: Gemini.
+Saya menggunakan bantuan AI untuk memahami implementasi AJAX, Fetch API, penanganan token CSRF pada *method* POST, implementasi *debouncing* pada fitur pencarian, serta teknik *escaping* XSS di JavaScript. Saya memberikan potongan kode yang sudah saya buat sebelumnya dan meminta penjelasan mengenai struktur implementasi serta kemungkinan perbaikan.
+
+Struktur utama aplikasi, penyesuaian desain kartu pendidikan agar tetap konsisten dengan gaya asli saya, serta pengaturan hak akses peran tetap saya kerjakan dan pahami secara mandiri. Bantuan AI saya gunakan terutama untuk membantu saya menyusun struktur respons `JsonResponse` manual, memahami alur kerja `async/await` pada `fetch()`, serta *debugging* ketika terjadi kendala pada sinkronisasi data asinkronus.
+
+Beberapa saran dari AI terkadang tidak langsung saya terapkan karena mengubah desain kartu HTML menjadi seragam dengan bagian lain yang tidak sesuai dengan preferensi estetika saya. Oleh karena itu, saya melakukan pengecekan ulang terhadap setiap saran, memperbaiki struktur *render card* secara manual, dan memastikan fungsionalitas berjalan dengan aman.
+
+Berikut merupakan beberapa chat yang saya ajukan ke AI:
+--> bagaimana cara membuat fungsi fetch dengan AJAX untuk menampilkan data dan menangani kondisi loading, empty, serta error?
+Answer (from AI): Anda dapat membuat fungsi asinkronus menggunakan async/await, melakukan pemanggilan ke endpoint JSON, lalu mengatur visibilitas elemen penanda seperti loading state, error state, atau mengosongkan kontainer grid jika data kosong sebelum merender kartu elemen satu per satu.
+
+--> bagaimana cara mencegah serangan XSS saat merender data JSON ke dalam DOM menggunakan innerHTML di JavaScript?
+Answer (from AI): Anda harus melakukan escaping pada setiap string nilai teks sebelum memasukkannya ke dalam HTML dengan membuat fungsi helper string replacement untuk karakter khusus seperti &, <, >, ", dan ' agar tidak dieksekusi sebagai tag HTML oleh browser.
+
+1. Debouncing adalah teknik untuk menunda eksekusi suatu fungsi sampai pengguna berhenti mengetik selama jangka waktu tertentu. Teknik ini penting diterapkan pada pencarian AJAX agar permintaan (*request*) tidak dikirim setiap kali pengguna menekan satu huruf, sehingga mengurangi beban server dan menghemat penggunaan jaringan.
+2. Fungsi `await` adalah untuk menghentikan sementara eksekusi kode sampai proses pengambilan data (*fetch*) selesai dan mengembalikan hasilnya. Jika kita tidak menggunakan `await`, JavaScript akan langsung menjalankan baris kode berikutnya sebelum data dari server diterima, yang menyebabkan program gagal membaca data tersebut.
+3. Serangan XSS (Cross-Site Scripting) adalah celah keamanan di mana penyerang memasukkan skrip berbahaya ke dalam halaman web. Data yang dimuat melalui AJAX/JavaScript lebih rentan karena manipulasi elemen dilakukan langsung di sisi peramban (*browser*), sehingga jika tidak dibersihkan atau di-*escape* secara manual, skrip berbahaya tersebut dapat dieksekusi oleh peramban.

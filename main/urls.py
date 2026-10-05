@@ -19,6 +19,8 @@ from main.views import (
     update_education,
     delete_education,
     get_educations_json,
+    create_education_ajax,
+    toggle_star_education,
 )
 
 app_name = "main"
@@ -100,6 +102,12 @@ urlpatterns = [
     ),
 
     path(
+        "education/add-ajax/",
+        create_education_ajax,
+        name="create_education_ajax"
+    ),
+
+    path(
         "organization/<uuid:organization_id>/update/",
         update_organization,
         name="update_organization"
@@ -121,5 +129,11 @@ urlpatterns = [
         "api/educations/",
         get_educations_json,
         name="get_educations_json"
+    ),
+
+    path(
+        "education/<uuid:education_id>/star/",
+        toggle_star_education,
+        name="toggle_star_education"
     ),
 ]

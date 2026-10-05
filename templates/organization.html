@@ -23,10 +23,6 @@
                 {% endif %}
             </div>
 
-            <button class="button button-secondary" onclick="showToast('Notifikasi Sistem', 'Organization berhasil dimuat!', 'success')">
-                Test Toast
-            </button>
-
             <form method="get" action="{% url 'main:show_organization' %}" class="organization-search">
                 <input
                     type="search"
@@ -109,6 +105,7 @@
 {% endif %}
 <script>
 const BASE_ORGANIZATIONS_ENDPOINT = "{% url 'main:get_organizations_json' %}";
+const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
 const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
 
@@ -250,15 +247,26 @@ async function toggleStar(organizationId) {
     const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
         .replace('00000000-0000-0000-0000-000000000000', organizationId);
 
+    try {
+        const response = await fetch(starUrl, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        });
+        const data = await response.json();
 
-    await fetch(starUrl, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken")
+        if (response.ok) {
+            if (data.status === "starred") {
+                showToast("Notifikasi Sistem", "Berhasil diberi Star!", "success");
+            } else {
+                showToast("Notifikasi Sistem", "Berhasil di-unstar!", "success");
+            }
+            fetchOrganizations(searchInput.value.trim());
         }
-    });
-
-    fetchOrganizations(searchInput.value.trim());
+    } catch (error) {
+        showToast("Notifikasi Sistem", "Terjadi kesalahan pada sistem.", "error");
+    }
 }
 
 gridContainer.addEventListener(
@@ -266,9 +274,12 @@ gridContainer.addEventListener(
     function(e) {
         if (e.target.classList.contains("star-button")) {
             e.preventDefault();
-            toggleStar(
-                e.target.dataset.id
-            );
+            if (!IS_AUTHENTICATED) {
+                showToast("Notifikasi Sistem", "Login atau Buat Akun terlebih dahulu!", "warning");
+                return;
+            }
+
+            toggleStar(e.target.dataset.id);
         }
     }
 );

@@ -248,20 +248,20 @@ def update_organization(request, organization_id):
 
 @login_required(login_url="/login/")
 def toggle_star(request, organization_id):
-    organization = get_object_or_404(
-        Organization,
-        pk=organization_id
-    )
-
+    organization = get_object_or_404(Organization, pk=organization_id)
+    status = ""
     if request.method == "POST":
         if request.user in organization.starred_by.all():
             organization.starred_by.remove(request.user)
+            status = "unstarred"
         else:
             organization.starred_by.add(request.user)
+            status = "starred"
 
     return JsonResponse(
         {
-            "message": "Star berhasil diperbarui."
+            "message": "Star berhasil diperbarui.",
+            "status": status
         }
     )
 
@@ -281,66 +281,49 @@ def show_education(request):
     )
 
 
+@login_required(login_url="/login/")
 def create_education(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     form = EducationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(
-            request, "Education berhasil ditambahkan!"
-        )
-
+        messages.success(request, "Education berhasil ditambahkan!")
         return redirect("main:show_education")
 
-    context = {"name": "Jotham Seanvedi","form": form,}
+    context = {"name": "Jotham Seanvedi", "form": form}
     return render(request, "education_form.html", context)
 
 
+@login_required(login_url="/login/")
 def update_education(request, education_id):
+    if not (request.user.is_superuser or is_editor(request.user)):
+        raise PermissionDenied
 
-    education = get_object_or_404(
-        Education,
-        pk=education_id
-    )
-
-    form = EducationForm(
-        request.POST or None,
-        instance=education
-    )
+    education = get_object_or_404(Education, pk=education_id)
+    form = EducationForm(request.POST or None, instance=education)
 
     if request.method == "POST" and form.is_valid():
         form.save()
-
-        messages.success(
-            request,
-            "Education berhasil diperbarui!"
-        )
-
+        messages.success(request, "Education berhasil diperbarui!")
         return redirect("main:show_education")
 
-    context = {"name": "Jotham Seanvedi","form": form,}
-
+    context = {"name": "Jotham Seanvedi", "form": form}
     return render(request, "education_form.html", context)
 
 
+@login_required(login_url="/login/")
 def delete_education(request, education_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
 
-    education = get_object_or_404(
-        Education,
-        pk=education_id
-    )
-
+    education = get_object_or_404(Education, pk=education_id)
     if request.method == "POST":
-
         education.delete()
+        messages.success(request, "Education berhasil dihapus!")
 
-        messages.success(
-            request,
-            "Education berhasil dihapus!"
-        )
-
-    return redirect(
-        "main:show_education"
-    )
+    return redirect("main:show_education")
 
 
 def get_educations_json(request):
@@ -407,19 +390,19 @@ def create_education_ajax(request):
 
 @login_required(login_url="/login/")
 def toggle_star_education(request, education_id):
-    education = get_object_or_404(
-        Education,
-        pk=education_id
-    )
-
+    education = get_object_or_404(Education, pk=education_id)
+    status = ""
     if request.method == "POST":
         if request.user in education.starred_by.all():
             education.starred_by.remove(request.user)
+            status = "unstarred"
         else:
             education.starred_by.add(request.user)
+            status = "starred"
 
     return JsonResponse(
         {
-            "message": "Star berhasil diperbarui."
+            "message": "Star berhasil diperbarui.",
+            "status": status
         }
     )
