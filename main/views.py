@@ -267,20 +267,13 @@ def toggle_star(request, organization_id):
 
 # Education
 def show_education(request):
-    json_response = get_educations_json(request)
-    educations = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-
-    educations = [
-        education.object
-        for education in educations
-    ]
+    title_query = request.GET.get("title", "").strip()
 
     context = {
         "name": "Jotham Seanvedi",
-        "educations": educations,
+        "title_query": title_query,
+        "is_editor": is_editor(request.user),
+        "form": EducationForm(),
     }
 
     return render(
@@ -351,15 +344,82 @@ def delete_education(request, education_id):
 
 
 def get_educations_json(request):
+    title_query = request.GET.get("title", "").strip()
 
-    educations = Education.objects.all()
+    educations = Education.objects.prefetch_related("starred_by").all()
 
-    educations_json = serializers.serialize(
-        "json",
-        educations
+    if title_query:
+        educations = educations.filter(school_name__icontains=title_query)
+
+    data = []
+
+    for education in educations:
+        starred_users = education.starred_by.all()
+
+        is_starred = (request.user in starred_users if request.user.is_authenticated else False)
+        starred_by_names = ", ".join([user.username for user in starred_users])
+
+        data.append(
+            {
+                "pk": str(education.id),
+                "fields": {
+                    "school_name": education.school_name,
+                    "degree": education.degree,
+                    "start_year": education.start_year,
+                    "end_year": education.end_year if education.end_year else "",
+                    "logo": education.logo if education.logo else "",
+                    "star_count": starred_users.count(),
+                    "is_starred": is_starred,
+                    "starred_by_names": starred_by_names,
+                }
+            }
+        )
+
+    return JsonResponse(data, safe=False)
+
+@require_POST
+def create_education_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan education."},
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+
+    if form.is_valid():
+        education = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Education berhasil ditambahkan.",
+                "pk": str(education.id)
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {
+            "errors": form.errors.get_json_data()
+        },
+        status=400
     )
 
-    return HttpResponse(
-        educations_json,
-        content_type="application/json"
+@login_required(login_url="/login/")
+def toggle_star_education(request, education_id):
+    education = get_object_or_404(
+        Education,
+        pk=education_id
+    )
+
+    if request.method == "POST":
+        if request.user in education.starred_by.all():
+            education.starred_by.remove(request.user)
+        else:
+            education.starred_by.add(request.user)
+
+    return JsonResponse(
+        {
+            "message": "Star berhasil diperbarui."
+        }
     )

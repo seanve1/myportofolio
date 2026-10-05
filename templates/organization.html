@@ -63,6 +63,50 @@
         </div>
     </section>
 </main>
+{% if user.is_superuser %}
+<div
+    id="add-organization-modal"
+    class="organization-delete-modal"
+    popover="auto"
+    role="dialog"
+    aria-modal="true"
+>
+    <button
+        type="button"
+        class="organization-delete-modal__backdrop"
+        popovertarget="add-organization-modal"
+        popovertargetaction="hide"
+    ></button>
+
+    <div class="organization-delete-modal__content" style="max-height: 90vh; overflow-y: auto;">
+        <button
+            type="button"
+            class="organization-delete-modal__close"
+            popovertarget="add-organization-modal"
+            popovertargetaction="hide"
+        >
+            ×
+        </button>
+
+        <h2>Tambah Organization</h2>
+        
+        <form id="add-org-form" class="organization-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+            
+            <div class="form-actions">
+                <button type="submit" class="button">Simpan Organization</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 <script>
 const BASE_ORGANIZATIONS_ENDPOINT = "{% url 'main:get_organizations_json' %}";
 const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
@@ -296,6 +340,45 @@ searchForm.addEventListener('submit', function(e) {
 
 
 fetchOrganizations(searchInput.value.trim());
+
+const addOrgForm = document.getElementById('add-org-form');
+const addOrgModal = document.getElementById('add-organization-modal');
+
+if (addOrgForm) {
+    addOrgForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(addOrgForm);
+        
+        try {
+            const response = await fetch("{% url 'main:create_organization_ajax' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                if (addOrgModal) {
+                    addOrgModal.hidePopover();
+                }
+                addOrgForm.reset();
+                showToast("Sukses", data.message, "success");
+                fetchOrganizations(searchInput.value.trim());
+            } else {
+                const errorMsg = data.message || "Gagal menambahkan organisasi. Periksa kembali input Anda.";
+                showToast("Error", errorMsg, "error");
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            showToast("Error", "Terjadi kesalahan pada server.", "error");
+        }
+    });
+}
+
 </script>
 
 {% endblock content %}
