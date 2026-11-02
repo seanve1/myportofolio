@@ -153,7 +153,7 @@ function buildOrganizationCardElement(item) {
         : '';
     
     const deleteHtml = IS_SUPERUSER
-        ? `<form method="post" action="${deleteUrl}">
+        ? `<form method="post" data-confirm-delete action="${deleteUrl}">
             {% csrf_token %}
             <button type="submit" class="button">
                 Hapus Organization
@@ -161,7 +161,8 @@ function buildOrganizationCardElement(item) {
         </form>`
         : '';
 
-    const starHtml = `
+    const starHtml = IS_AUTHENTICATED
+        ? `
         <button
             type="button"
             class="button star-button"
@@ -169,7 +170,8 @@ function buildOrganizationCardElement(item) {
         >
             ${starText} (${organization.star_count})
         </button>
-    `;
+    `
+        : `<span class="star-count">Stars: ${organization.star_count}</span>`;
 
     articleElement.innerHTML = `
         <div class="card-normal">
@@ -268,6 +270,13 @@ async function toggleStar(organizationId) {
         showToast("Notifikasi Sistem", "Terjadi kesalahan pada sistem.", "error");
     }
 }
+
+gridContainer.addEventListener("submit", function(e) {
+    if (e.target.matches("form[data-confirm-delete]") &&
+        !window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+        e.preventDefault();
+    }
+});
 
 gridContainer.addEventListener(
     "click",

@@ -26,11 +26,6 @@
 
 {% else %}
 
-<a
-    href="{% url 'main:login' %}"
-    class="button"
->
-    Login to Star
-</a>
+<span class="star-count">Stars: {{ organization.starred_by.count }}</span>
 
 {% endif %}

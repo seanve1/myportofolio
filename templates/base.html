@@ -31,9 +31,10 @@
                         {{ user.username }}
                     </span>
 
-                    <a href="{% url 'main:logout' %}">
-                        Logout
-                    </a>
+                    <form method="post" action="{% url 'main:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="button">Logout</button>
+                    </form>
 
                 {% else %}
 

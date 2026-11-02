@@ -3,7 +3,7 @@
 
 {% block meta %}
 <title>
-    {% if form.instance.pk %}
+    {% if is_update %}
         Update Education - {{ name }}
     {% else %}
         Add Education - {{ name }}
@@ -21,7 +21,7 @@
 
 <h1 class="section-title">
 
-{% if form.instance.pk %}
+{% if is_update %}
 
 Update Education
 
@@ -35,6 +35,7 @@ Add Education
 
 <form
     method="post"
+    action="{% if is_update %}{% url 'main:update_education' form.instance.pk %}{% else %}{% url 'main:create_education' %}{% endif %}"
     class="education-form"
 >
 
@@ -72,7 +73,7 @@ Add Education
     class="button"
 >
 
-{% if form.instance.pk %}
+{% if is_update %}
 
 Update
 

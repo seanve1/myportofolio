@@ -6,13 +6,14 @@ from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, redirect, get_object_or_404
-
-import datetime
 
 from .models import Organization, Education
 from .forms import OrganizationForm, EducationForm
+
+PORTFOLIO_DISPLAY_NAME = "Jotham Seanvedi"
 
 def is_editor(user):
     return user.groups.filter(
@@ -20,13 +21,11 @@ def is_editor(user):
     ).exists()
 
 def show_main(request):
-    last_login = request.COOKIES.get(
-        "last_login",
-        "Belum ada sesi login/Cookie tidak ditemukan"
-    )
+    # The cookie is retained for coursework, but is not an authoritative timestamp.
+    last_login = request.user.last_login if request.user.is_authenticated else None
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "npm": "2506584161",
         "study_program": "S1 Sistem Informasi",
         "bio": (
@@ -39,6 +38,7 @@ def show_main(request):
     }
     return render(request, "index.html", context)
 
+@require_http_methods(["GET", "POST"])
 def register(request):
     form = UserCreationForm(request.POST or None)
 
@@ -48,12 +48,13 @@ def register(request):
         return redirect("main:login")
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "form": form,
     }
 
     return render(request, "register.html", context)
 
+@require_http_methods(["GET", "POST"])
 def login_user(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -64,18 +65,19 @@ def login_user(request):
         response = redirect("main:show_main")
         response.set_cookie(
             "last_login",
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            user.last_login.isoformat()
         )
 
         return response
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "form": form,
     }
 
     return render(request, "login.html", context)
 
+@require_POST
 def logout_user(request):
     logout(request)
 
@@ -85,11 +87,12 @@ def logout_user(request):
     return response
 
 # Organization
+@ensure_csrf_cookie
 def show_organization(request):
     title_query = request.GET.get("title", "").strip()
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "title_query": title_query,
         "is_editor": is_editor(request.user),
         "form": OrganizationForm(),
@@ -98,6 +101,7 @@ def show_organization(request):
     return render(request, "organization.html", context)
 
 @login_required(login_url="/login/")
+@require_http_methods(["GET", "POST"])
 def create_organization(request):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -110,7 +114,7 @@ def create_organization(request):
         return redirect("main:show_organization")
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "form": form,
     }
 
@@ -187,6 +191,7 @@ def get_organizations_json(request):
     return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
+@require_POST
 def delete_organization(request, organization_id):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -206,6 +211,7 @@ def delete_organization(request, organization_id):
     return redirect("main:show_organization")
 
 @login_required(login_url="/login/")
+@require_http_methods(["GET", "POST"])
 def update_organization(request, organization_id):
     if not (
         request.user.is_superuser
@@ -236,8 +242,9 @@ def update_organization(request, organization_id):
         )
 
     context = {
-        "name": "Jotham Seanvedi Takin Allo",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "form": form,
+        "is_update": True,
     }
 
     return render(
@@ -247,6 +254,7 @@ def update_organization(request, organization_id):
     )
 
 @login_required(login_url="/login/")
+@require_POST
 def toggle_star(request, organization_id):
     organization = get_object_or_404(Organization, pk=organization_id)
     status = ""
@@ -266,11 +274,12 @@ def toggle_star(request, organization_id):
     )
 
 # Education
+@ensure_csrf_cookie
 def show_education(request):
     title_query = request.GET.get("title", "").strip()
 
     context = {
-        "name": "Jotham Seanvedi",
+        "name": PORTFOLIO_DISPLAY_NAME,
         "title_query": title_query,
         "is_editor": is_editor(request.user),
         "form": EducationForm(),
@@ -282,6 +291,7 @@ def show_education(request):
 
 
 @login_required(login_url="/login/")
+@require_http_methods(["GET", "POST"])
 def create_education(request):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -292,11 +302,12 @@ def create_education(request):
         messages.success(request, "Education berhasil ditambahkan!")
         return redirect("main:show_education")
 
-    context = {"name": "Jotham Seanvedi", "form": form}
+    context = {"name": PORTFOLIO_DISPLAY_NAME, "form": form, "is_update": False}
     return render(request, "education_form.html", context)
 
 
 @login_required(login_url="/login/")
+@require_http_methods(["GET", "POST"])
 def update_education(request, education_id):
     if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
@@ -309,11 +320,12 @@ def update_education(request, education_id):
         messages.success(request, "Education berhasil diperbarui!")
         return redirect("main:show_education")
 
-    context = {"name": "Jotham Seanvedi", "form": form}
+    context = {"name": PORTFOLIO_DISPLAY_NAME, "form": form, "is_update": True}
     return render(request, "education_form.html", context)
 
 
 @login_required(login_url="/login/")
+@require_POST
 def delete_education(request, education_id):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -389,6 +401,7 @@ def create_education_ajax(request):
     )
 
 @login_required(login_url="/login/")
+@require_POST
 def toggle_star_education(request, education_id):
     education = get_object_or_404(Education, pk=education_id)
     status = ""

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block meta %}
-<title>Add Organization - {{ name }}</title>
+<title>{% if is_update %}Update{% else %}Add{% endif %} Organization - {{ name }}</title>
 {% endblock meta %}
 
 {% block content %}
 <main>
     <section class="organization-section">
         <div class="container">
-            <h1 class="section-title">Add New Organization</h1>
-            <form method="post" action="{% url 'main:create_organization' %}" class="organization-form">
+            <h1 class="section-title">{% if is_update %}Update Organization{% else %}Add New Organization{% endif %}</h1>
+            <form method="post" action="{% if is_update %}{% url 'main:update_organization' form.instance.pk %}{% else %}{% url 'main:create_organization' %}{% endif %}" class="organization-form">
                 {% csrf_token %}
                 {% for field in form %}
                 <div class="form-group">
@@ -24,7 +24,7 @@
                 {% endfor %}
 
                 <div class="form-actions">
-                    <button type="submit" class="button">Add Organization</button>
+                    <button type="submit" class="button">{% if is_update %}Update{% else %}Add{% endif %} Organization</button>
                     <a href="{% url 'main:show_organization' %}" class="button button-secondary">Cancel</a>
                 </div>
             </form>

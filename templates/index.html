@@ -31,10 +31,12 @@
                         <dt>Program</dt>
                         <dd>{{ study_program }}</dd>
                     </div>
+                    {% if user.is_authenticated and last_login %}
                     <div class="meta-row">
-                        <dt>Last Login</dt>
-                        <dd>{{ last_login }}</dd>
+                        <dt>Last Login (account)</dt>
+                        <dd>{{ last_login|date:"Y-m-d H:i:s O" }}</dd>
                     </div>
+                    {% endif %}
                 </dl>
 
                 <div class="social-links">

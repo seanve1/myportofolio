@@ -152,7 +152,7 @@ function buildEducationCardElement(item) {
         : '';
     
     const deleteHtml = IS_SUPERUSER
-        ? `<form method="post" action="${deleteUrl}" style="display:inline;">
+        ? `<form method="post" data-confirm-delete action="${deleteUrl}" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="button button-danger" style="font-size: 0.85rem; padding: 0.45rem 0.8rem;">
                 Hapus
@@ -160,7 +160,8 @@ function buildEducationCardElement(item) {
         </form>`
         : '';
 
-    const starHtml = `
+    const starHtml = IS_AUTHENTICATED
+        ? `
         <button
             type="button"
             class="button star-button"
@@ -169,7 +170,8 @@ function buildEducationCardElement(item) {
         >
             ${starText} (${education.star_count})
         </button>
-    `;
+    `
+        : `<span class="star-count">Stars: ${education.star_count}</span>`;
 
     articleElement.innerHTML = `
         ${education.logo
@@ -235,6 +237,13 @@ async function toggleStarEducation(educationId) {
         showToast("Notifikasi Sistem", "Terjadi kesalahan pada sistem.", "error");
     }
 }
+
+gridContainer.addEventListener("submit", function(e) {
+    if (e.target.matches("form[data-confirm-delete]") &&
+        !window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+        e.preventDefault();
+    }
+});
 
 gridContainer.addEventListener(
     "click",
