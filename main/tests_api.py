@@ -227,3 +227,36 @@ class OrganizationAPITest(APITestCase):
         response = self.client.post(self.list_url, '{"title":', content_type="application/json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Organization.objects.count(), 1)
+
+    def test_organization_page_and_ajax_session_contract_for_all_roles(self):
+        for user in (None, self.visitor, self.editor, self.owner):
+            with self.subTest(user=user):
+                client = APIClient(enforce_csrf_checks=True)
+                if user:
+                    client.force_login(user)
+                page = client.get(reverse("main:show_organization"))
+                self.assertEqual(page.status_code, 200)
+                self.assertContains(page, f'const BASE_ORGANIZATIONS_ENDPOINT = "{self.list_url}";')
+                self.assertContains(page, 'const DETAIL_ORGANIZATION_ENDPOINT = "/api/v1/organizations/')
+                self.assertContains(page, 'const STAR_ORGANIZATION_ENDPOINT = "/api/v1/organizations/')
+                self.assertNotContains(page, "item.fields")
+                self.assertNotContains(page, "item.pk")
+                self.assertIn("csrftoken", client.cookies)
+                headers = {"HTTP_X_CSRFTOKEN": client.cookies["csrftoken"].value}
+                self.assertEqual(client.get(self.list_url, HTTP_ACCEPT="application/json").status_code, 200)
+                response = client.post(self.star_url, format="json", **headers)
+                self.assertEqual(response.status_code, 200 if user else 403)
+                if user:
+                    self.assertTrue(response.data["is_starred"])
+                    self.assertFalse(client.post(self.star_url, **headers).data["is_starred"])
+                response = client.patch(self.detail_url, {"title": "Session update"}, format="json", **headers)
+                self.assertEqual(response.status_code, 200 if user in (self.editor, self.owner) else 403)
+                response = client.post(self.list_url, {
+                    **self.payload, "started_at": None, "ended_at": None,
+                }, format="json", **headers)
+                self.assertEqual(response.status_code, 201 if user == self.owner else 403)
+                if user == self.owner:
+                    created_url = reverse("api:organization-detail", args=[response.data["id"]])
+                    deleted = client.delete(created_url, **headers)
+                    self.assertEqual(deleted.status_code, 204)
+                    self.assertEqual(deleted.content, b"")

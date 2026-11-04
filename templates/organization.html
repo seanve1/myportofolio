@@ -104,7 +104,9 @@
 </div>
 {% endif %}
 <script>
-const BASE_ORGANIZATIONS_ENDPOINT = "{% url 'main:get_organizations_json' %}";
+const BASE_ORGANIZATIONS_ENDPOINT = "{% url 'api:organization-list' %}";
+const DETAIL_ORGANIZATION_ENDPOINT = "{% url 'api:organization-detail' '00000000-0000-0000-0000-000000000000' %}";
+const STAR_ORGANIZATION_ENDPOINT = "{% url 'api:organization-star' '00000000-0000-0000-0000-000000000000' %}";
 const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
 const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
@@ -130,9 +132,15 @@ function escapeHtml(value) {
         .replaceAll("'", '&#39;');
 }
 
-function buildOrganizationCardElement(item) {
-    const organization = item.fields;
-    const organizationId = item.pk;
+function organizationEndpoint(pattern, id) {
+    return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+}
+
+function buildOrganizationCardElement(organization) {
+    const organizationId = organization.id;
+    const startYear = organization.started_at ? organization.started_at.slice(0, 4) : '';
+    const endYear = organization.ended_at ? organization.ended_at.slice(0, 4) : '';
+    const dates = escapeHtml(startYear) + (endYear && startYear !== endYear ? ` - ${escapeHtml(endYear)}` : '');
 
     const articleElement = document.createElement('div');
     articleElement.className = 'organization-card';
@@ -140,25 +148,18 @@ function buildOrganizationCardElement(item) {
     const updateUrl = "{% url 'main:update_organization' '00000000-0000-0000-0000-000000000000' %}"
         .replace('00000000-0000-0000-0000-000000000000', organizationId);
 
-    const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
-        .replace('00000000-0000-0000-0000-000000000000', organizationId);
-
-    const deleteUrl = "{% url 'main:delete_organization' '00000000-0000-0000-0000-000000000000' %}"
-        .replace('00000000-0000-0000-0000-000000000000', organizationId);
-
     const starText = organization.is_starred ? "Unstar" : "Star";
 
     const updateHtml = (IS_SUPERUSER || IS_EDITOR)
-        ? `<a href="${updateUrl}" class="button">Update Organization</a>`
+        ? `<a href="${escapeHtml(updateUrl)}" class="button">Update Organization</a>`
         : '';
     
     const deleteHtml = IS_SUPERUSER
-        ? `<form method="post" data-confirm-delete action="${deleteUrl}">
-            {% csrf_token %}
-            <button type="submit" class="button">
+        ? `<div>
+            <button type="button" class="button" data-action="delete" data-id="${escapeHtml(organizationId)}">
                 Hapus Organization
             </button>
-        </form>`
+        </div>`
         : '';
 
     const starHtml = IS_AUTHENTICATED
@@ -166,7 +167,9 @@ function buildOrganizationCardElement(item) {
         <button
             type="button"
             class="button star-button"
-            data-id="${organizationId}"
+            data-action="star"
+            data-id="${escapeHtml(organizationId)}"
+            title="${escapeHtml(organization.starred_by_names)}"
         >
             ${starText} (${organization.star_count})
         </button>
@@ -184,11 +187,7 @@ function buildOrganizationCardElement(item) {
                 <h3>${escapeHtml(organization.title)}</h3>
                 <p class="org-name">${escapeHtml(organization.category)}</p>
                 <p class="org-date">
-                    ${organization.started_at}
-                    ${organization.ended_at && organization.started_at !== organization.ended_at
-                        ? ` - ${organization.ended_at}`
-                        : ''
-                    }
+                    ${dates}
                 </p>
             </div>
         </div>
@@ -209,11 +208,7 @@ function buildOrganizationCardElement(item) {
             </ul>
 
             <p class="hover-date">
-                ${organization.started_at}
-                ${organization.ended_at && organization.started_at !== organization.ended_at
-                    ? ` - ${organization.ended_at}`
-                    : ''
-                }
+                ${dates}
             </p>
 
             ${updateHtml}
@@ -244,161 +239,122 @@ function getCookie(name) {
     return cookieValue;
 }
 
-async function toggleStar(organizationId) {
-
-    const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
-        .replace('00000000-0000-0000-0000-000000000000', organizationId);
-
-    try {
-        const response = await fetch(starUrl, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken")
-            }
-        });
-        const data = await response.json();
-
-        if (response.ok) {
-            if (data.status === "starred") {
-                showToast("Notifikasi Sistem", "Berhasil diberi Star!", "success");
-            } else {
-                showToast("Notifikasi Sistem", "Berhasil di-unstar!", "success");
-            }
-            fetchOrganizations(searchInput.value.trim());
-        }
-    } catch (error) {
-        showToast("Notifikasi Sistem", "Terjadi kesalahan pada sistem.", "error");
-    }
+function apiErrorMessage(data, status) {
+    const messages = Object.values(data || {}).flat().filter(value => typeof value === 'string');
+    return messages.join(' ') || `Request gagal (HTTP ${status}).`;
 }
 
-gridContainer.addEventListener("submit", function(e) {
-    if (e.target.matches("form[data-confirm-delete]") &&
-        !window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-        e.preventDefault();
-    }
-});
+async function writeOrganization(url, method, payload) {
+    const response = await fetch(url, {
+        method,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: payload === undefined ? undefined : JSON.stringify(payload),
+    });
+    if (response.status === 204) return null;
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
+    return data;
+}
 
-gridContainer.addEventListener(
-    "click",
-    function(e) {
-        if (e.target.classList.contains("star-button")) {
-            e.preventDefault();
-            if (!IS_AUTHENTICATED) {
-                showToast("Notifikasi Sistem", "Login atau Buat Akun terlebih dahulu!", "warning");
-                return;
-            }
+const searchForm = document.querySelector('.organization-search');
+const searchInput = document.querySelector('.organization-search__input');
+const SEARCH_DEBOUNCE_DELAY = 300;
+let searchDebounceTimer;
+let organizationsAbortController;
 
-            toggleStar(e.target.dataset.id);
-        }
-    }
-);
-
-async function fetchOrganizations(searchQuery = "") {
+async function fetchOrganizations(searchQuery = '') {
+    if (organizationsAbortController) organizationsAbortController.abort();
+    const controller = new AbortController();
+    organizationsAbortController = controller;
     try {
         displayPageSection({ showLoading: true });
-
-        const url = searchQuery
-            ? `${BASE_ORGANIZATIONS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
-            : BASE_ORGANIZATIONS_ENDPOINT;
-
+        const url = new URL(BASE_ORGANIZATIONS_ENDPOINT, window.location.origin);
+        if (searchQuery) url.searchParams.set('title', searchQuery);
         const response = await fetch(url, {
-            headers: {
-                'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
         });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch data');
-        }
-
-        const organizationData = await response.json();
-
-        if (organizationData.length === 0) {
-            displayPageSection({ showEmpty: true });
-        } else {
-            gridContainer.innerHTML = '';
-
-            organizationData.forEach(item => {
-                gridContainer.appendChild(
-                    buildOrganizationCardElement(item)
-                );
-            });
-
-            displayPageSection({ showGrid: true });
-        }
-
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const organizations = await response.json();
+        if (controller.signal.aborted) return;
+        gridContainer.replaceChildren(...organizations.map(buildOrganizationCardElement));
+        displayPageSection({ showGrid: organizations.length > 0, showEmpty: organizations.length === 0 });
     } catch (error) {
+        if (controller.signal.aborted) return;
         console.error('Error loading organizations:', error);
         displayPageSection({ showError: true });
     }
 }
 
-const searchForm = document.querySelector('.organization-search');
-const searchInput = document.querySelector('.organization-search__input');
+gridContainer.addEventListener('click', async function(event) {
+    const button = event.target.closest('button[data-action]');
+    if (!button || button.disabled) return;
+    const action = button.dataset.action;
+    if (action !== 'star' && action !== 'delete') return;
+    if (action === 'star' && !IS_AUTHENTICATED) return;
+    if (action === 'delete' && (!IS_SUPERUSER || !window.confirm('Apakah Anda yakin ingin menghapus data ini?'))) return;
+    button.disabled = true;
+    try {
+        const pattern = action === 'star' ? STAR_ORGANIZATION_ENDPOINT : DETAIL_ORGANIZATION_ENDPOINT;
+        const data = await writeOrganization(
+            organizationEndpoint(pattern, button.dataset.id), action === 'star' ? 'POST' : 'DELETE',
+        );
+        const message = action === 'delete'
+            ? 'Organization berhasil dihapus!'
+            : (data.is_starred ? 'Berhasil diberi Star!' : 'Berhasil di-unstar!');
+        showToast('Notifikasi Sistem', message, 'success');
+        await fetchOrganizations(searchInput.value.trim());
+    } catch (error) {
+        showToast('Request gagal', error.message, 'error');
+    } finally {
+        button.disabled = false;
+    }
+});
 
-const SEARCH_DEBOUNCE_DELAY = 300;
-let searchDebounceTimer;
-
-function searchOrganizations() {
+searchInput.addEventListener('input', function() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => fetchOrganizations(searchInput.value.trim()), SEARCH_DEBOUNCE_DELAY);
+});
+searchForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    clearTimeout(searchDebounceTimer);
     fetchOrganizations(searchInput.value.trim());
-}
-
-searchInput.addEventListener("input", function() {
-    clearTimeout(searchDebounceTimer);
-
-    searchDebounceTimer = setTimeout(function() {
-        searchOrganizations();
-    }, SEARCH_DEBOUNCE_DELAY);
 });
-
-
-searchForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    clearTimeout(searchDebounceTimer);
-    searchOrganizations();
-});
-
-
-fetchOrganizations(searchInput.value.trim());
 
 const addOrgForm = document.getElementById('add-org-form');
 const addOrgModal = document.getElementById('add-organization-modal');
-
 if (addOrgForm) {
-    addOrgForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(addOrgForm);
-        
+    addOrgForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const button = addOrgForm.querySelector('button[type="submit"]');
+        if (button.disabled) return;
+        button.disabled = true;
         try {
-            const response = await fetch("{% url 'main:create_organization_ajax' %}", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken")
-                }
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                if (addOrgModal) {
-                    addOrgModal.hidePopover();
-                }
-                addOrgForm.reset();
-                showToast("Sukses", data.message, "success");
-                fetchOrganizations(searchInput.value.trim());
-            } else {
-                const errorMsg = data.message || "Gagal menambahkan organisasi. Periksa kembali input Anda.";
-                showToast("Error", errorMsg, "error");
-            }
+            const fields = new FormData(addOrgForm);
+            const payload = Object.fromEntries([
+                'title', 'category', 'desc_1', 'desc_2', 'desc_3', 'thumbnail', 'started_at', 'ended_at',
+            ].map(name => [name, fields.get(name)]));
+            // Empty optional datetime inputs must be null rather than invalid empty strings.
+            payload.started_at = payload.started_at || null;
+            payload.ended_at = payload.ended_at || null;
+            await writeOrganization(BASE_ORGANIZATIONS_ENDPOINT, 'POST', payload);
+            addOrgModal.hidePopover();
+            addOrgForm.reset();
+            showToast('Sukses', 'Organization berhasil ditambahkan.', 'success');
+            await fetchOrganizations(searchInput.value.trim());
         } catch (error) {
-            console.error('Error submitting form:', error);
-            showToast("Error", "Terjadi kesalahan pada server.", "error");
+            showToast('Gagal menambahkan organisasi', error.message, 'error');
+        } finally {
+            button.disabled = false;
         }
     });
 }
 
+fetchOrganizations(searchInput.value.trim());
 </script>
 
 {% endblock content %}
