@@ -167,7 +167,9 @@ class OrganizationAPITest(APITestCase):
 
     def test_session_mutations_without_or_with_invalid_csrf_are_rejected(self):
         client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.owner)
+        self.owner.set_password("api-csrf-test-password")
+        self.owner.save(update_fields=["password"])
+        self.assertTrue(client.login(username=self.owner.username, password="api-csrf-test-password"))
         client.get(reverse("main:show_organization"))
         for method, url, payload in (
             ("post", self.list_url, self.payload), ("put", self.detail_url, self.payload),
@@ -184,7 +186,9 @@ class OrganizationAPITest(APITestCase):
 
     def test_session_mutations_with_csrf_succeed(self):
         client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.owner)
+        self.owner.set_password("api-csrf-test-password")
+        self.owner.save(update_fields=["password"])
+        self.assertTrue(client.login(username=self.owner.username, password="api-csrf-test-password"))
         page = client.get(self.list_url, HTTP_ACCEPT="text/html")
         self.assertEqual(page.status_code, 200)
         self.assertIn("csrftoken", client.cookies)

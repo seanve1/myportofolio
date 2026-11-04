@@ -54,7 +54,7 @@
             </div>
 
             <div class="organization-list" id="organization-grid">
-                
+
             </div>
         </div>
     </section>
@@ -85,17 +85,17 @@
         </button>
 
         <h2>Tambah Organization</h2>
-        
+
         <form id="add-org-form" class="organization-form">
             {% csrf_token %}
-            
+
             {% for field in form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
             </div>
             {% endfor %}
-            
+
             <div class="form-actions">
                 <button type="submit" class="button">Simpan Organization</button>
             </div>
@@ -153,7 +153,7 @@ function buildOrganizationCardElement(organization) {
     const updateHtml = (IS_SUPERUSER || IS_EDITOR)
         ? `<a href="${escapeHtml(updateUrl)}" class="button">Update Organization</a>`
         : '';
-    
+
     const deleteHtml = IS_SUPERUSER
         ? `<div>
             <button type="button" class="button" data-action="delete" data-id="${escapeHtml(organizationId)}">
@@ -338,7 +338,6 @@ if (addOrgForm) {
             const payload = Object.fromEntries([
                 'title', 'category', 'desc_1', 'desc_2', 'desc_3', 'thumbnail', 'started_at', 'ended_at',
             ].map(name => [name, fields.get(name)]));
-            // Empty optional datetime inputs must be null rather than invalid empty strings.
             payload.started_at = payload.started_at || null;
             payload.ended_at = payload.ended_at || null;
             await writeOrganization(BASE_ORGANIZATIONS_ENDPOINT, 'POST', payload);
