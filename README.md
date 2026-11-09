@@ -117,3 +117,94 @@ Answer (from AI): Anda harus melakukan escaping pada setiap string nilai teks se
 1. Debouncing adalah teknik untuk menunda eksekusi suatu fungsi sampai pengguna berhenti mengetik selama jangka waktu tertentu. Teknik ini penting diterapkan pada pencarian AJAX agar permintaan (*request*) tidak dikirim setiap kali pengguna menekan satu huruf, sehingga mengurangi beban server dan menghemat penggunaan jaringan.
 2. Fungsi `await` adalah untuk menghentikan sementara eksekusi kode sampai proses pengambilan data (*fetch*) selesai dan mengembalikan hasilnya. Jika kita tidak menggunakan `await`, JavaScript akan langsung menjalankan baris kode berikutnya sebelum data dari server diterima, yang menyebabkan program gagal membaca data tersebut.
 3. Serangan XSS (Cross-Site Scripting) adalah celah keamanan di mana penyerang memasukkan skrip berbahaya ke dalam halaman web. Data yang dimuat melalui AJAX/JavaScript lebih rentan karena manipulasi elemen dilakukan langsung di sisi peramban (*browser*), sehingga jika tidak dibersihkan atau di-*escape* secara manual, skrip berbahaya tersebut dapat dieksekusi oleh peramban.
+
+### Tutorial 7
+
+Pada Tutorial 7, saya mulai menggunakan Django REST Framework (DRF) untuk membuat REST API pada model `Organization`. Sebelumnya data organisasi sudah bisa ditampilkan dalam format JSON menggunakan view Django biasa, tetapi pada tutorial ini saya mempelajari penggunaan `ModelSerializer`, `@api_view`, dan `Response` dari DRF. Saya juga mengatur endpoint untuk melihat daftar organisasi, melihat detail, menambahkan, memperbarui, menghapus, dan memberikan Star. Dengan begitu, frontend dapat berkomunikasi dengan backend melalui URL dan HTTP method yang lebih jelas.
+
+Hal yang cukup penting bagi saya dari tutorial ini adalah perbedaan antara authentication dan permission. Pengguna yang belum login tetap boleh melihat data, pengguna biasa hanya boleh membaca dan memberikan Star, Editor dapat memperbarui data yang sudah ada, sedangkan superuser dapat mengelola seluruh data. Saya menerapkan aturan tersebut menggunakan permission class, sehingga pembatasan hak akses tidak hanya bergantung pada tombol yang muncul di halaman. Selain itu, saya menghubungkan halaman Organization dengan API DRF menggunakan Fetch API dan tetap mengirimkan CSRF token untuk request yang mengubah data.
+
+Pengujian saya lakukan dengan Django test suite, termasuk untuk status HTTP, validasi serializer, perbedaan hak akses setiap role, dan request berbasis session. Saya juga memahami bahwa `force_authenticate()` saja belum membuktikan perlindungan CSRF, sehingga pengujian session perlu menggunakan `APIClient(enforce_csrf_checks=True)` dan proses login yang sebenarnya.
+
+**AI Disclosure:**
+
+Alat yang digunakan: ChatGPT dan OpenAI Codex Desktop.
+
+Saya menggunakan bantuan AI untuk memahami struktur REST API dengan DRF, pembagian tanggung jawab antara serializer, permission class, dan API view, serta menyusun langkah implementasi yang tidak mengganggu kode Django sebelumnya. Codex juga membantu melakukan inspeksi repository, implementasi kode, dan pembuatan pengujian. Saya tetap memeriksa hasilnya berdasarkan kebutuhan tutorial dan menjalankan proses Git secara manual.
+
+Saya menyadari bahwa API yang berhasil mengembalikan JSON belum tentu mempunyai pengaturan hak akses yang benar. Karena itu, saran AI tidak saya anggap langsung selesai hanya karena aplikasi bisa berjalan. Saya memeriksa hasil pengujian untuk beberapa role, status HTTP, dan CSRF, lalu mempertahankan struktur Organization serta fitur lama yang memang masih dibutuhkan.
+
+### Tugas 6
+
+Pada Individual Assignment 6, saya melanjutkan materi Tutorial 7 dengan menerapkan Django REST Framework pada bagian `Education`, bukan lagi `Organization`. Model Education sebenarnya sudah memiliki CRUD, pencarian, dan Star dari tugas sebelumnya. Pada tugas ini saya membuat `EducationSerializer`, endpoint REST API, permission untuk setiap role, serta mengubah halaman Education agar mengambil dan memperbarui data melalui Fetch API. Jadi, proses tambah, update, hapus, pencarian, dan Star dapat berjalan tanpa perlu me-*reload* halaman.
+
+Untuk implementasinya, saya memisahkan validasi data di `main/serializers.py`, pengaturan hak akses di `main/permissions.py`, dan operasi API di `main/api_views.py`. Field `star_count` dan `is_starred` bersifat *read-only*, sedangkan identitas pengguna yang memberi Star selalu berasal dari `request.user`. Saya juga menambahkan modal Edit untuk Editor dan superuser, error toast, penanganan loading/empty state, serta pemeriksaan tampilan mobile. Perubahan ini dibuat dengan tetap mempertahankan halaman dan URL Education sebelumnya.
+
+1. **Apa perbedaan RESTful API dengan hanya mengembalikan JSON? Apa perbedaan PUT dan PATCH?**
+
+JSON adalah format data yang digunakan untuk mengirim informasi antara server dan client. Sementara itu, RESTful API tidak hanya membahas format respons, tetapi juga bagaimana resource diatur melalui URL, penggunaan HTTP method, serta status respons yang sesuai. Contohnya pada proyek saya, `/api/v1/educations/` digunakan untuk kumpulan data Education, sedangkan `/api/v1/educations/<uuid>/` digunakan untuk satu data tertentu. GET digunakan untuk membaca, POST untuk menambahkan, PUT/PATCH untuk memperbarui, dan DELETE untuk menghapus data.
+
+PUT biasanya digunakan ketika client ingin mengirim data yang lengkap untuk suatu resource, sedangkan PATCH digunakan untuk memperbarui sebagian field saja. Pada Education, PUT mengharuskan field wajib seperti `school_name`, `degree`, dan `start_year` tetap dikirim. Untuk field opsional yang tidak dikirim, serializer yang digunakan pada proyek ini masih mempertahankan nilai sebelumnya. Sementara itu, pada modal Edit saya menggunakan PATCH karena hanya field yang berubah yang perlu dikirim. Misalnya ketika saya hanya ingin mengubah `degree`, field lain seperti tahun dan logo tidak ikut diubah.
+
+2. **Apa kegunaan serializer DRF dibandingkan membuat dictionary JSON secara manual?**
+
+`ModelSerializer` membantu mengubah object dari database menjadi representasi yang siap dikirim melalui API, sekaligus memeriksa data yang diterima dari client sebelum disimpan. Pada `EducationSerializer`, saya menuliskan daftar field secara eksplisit, menambahkan validasi input seperti `strip_tags`, dan membuat field perhitungan `star_count` serta `is_starred`. Field hasil perhitungan tersebut tidak bisa diubah dengan mengirimkan nilai palsu dari frontend.
+
+Sebelumnya, saya menggunakan `JsonResponse` dengan dictionary yang saya susun sendiri di view. Cara tersebut tetap bisa digunakan, tetapi ketika operasi create, update, dan validasi semakin banyak, kode di view menjadi lebih sulit dipelihara. Dengan serializer, logika representasi dan validasi lebih terpusat, sedangkan permission tetap diperiksa di bagian yang berbeda. Menurut saya ini juga membuat pengujian setiap bagian lebih jelas.
+
+3. **Apa perbedaan authentication dan authorization, serta mengapa permission di backend tetap diperlukan?**
+
+Authentication digunakan untuk memastikan siapa pengguna yang sedang mengakses aplikasi, misalnya melalui session setelah login. Authorization menentukan tindakan apa yang diperbolehkan untuk pengguna tersebut. Pada proyek saya, pengunjung yang belum login hanya bisa membaca data. Pengguna biasa dapat membaca dan memberikan Star miliknya sendiri, Editor dapat memperbarui Education, sedangkan superuser dapat menambahkan, memperbarui, dan menghapus data.
+
+Menyembunyikan tombol Add atau Delete dari pengguna tertentu tidak cukup untuk menjaga keamanan karena seseorang masih bisa mengirim request langsung ke URL API. Oleh sebab itu, saya menggunakan permission class di backend. Misalnya jika Editor mencoba mengirim POST untuk membuat Education baru atau DELETE untuk menghapusnya, server tetap memberikan respons 403. Status `is_staff` saja juga tidak otomatis menjadikan seseorang Editor. View Education lama ikut diperiksa agar tidak membuka akses yang lebih luas dibandingkan API baru.
+
+4. **Mengapa SessionAuthentication memerlukan CSRF, dan mengapa force_authenticate() belum cukup untuk mengujinya?**
+
+Ketika pengguna login, browser menyimpan cookie session yang kemudian dapat ikut terkirim bersama request. Jika aplikasi tidak memeriksa CSRF pada request yang mengubah data, ada risiko website lain mencoba memanfaatkan session pengguna yang sedang aktif. Karena itu, pada operasi seperti POST, PUT, PATCH, dan DELETE, frontend Education mengirimkan header `X-CSRFToken` yang dibaca dari cookie `csrftoken`. Halaman Education juga menggunakan `ensure_csrf_cookie` agar token tersedia untuk pengguna yang tidak mempunyai form Add atau Edit.
+
+`force_authenticate()` pada DRF berguna untuk menguji permission karena kita bisa menentukan pengguna secara langsung. Namun, cara tersebut melewati proses login berbasis session sehingga tidak membuktikan bahwa pemeriksaan CSRF bekerja. Untuk bagian ini saya menggunakan `APIClient(enforce_csrf_checks=True)` dengan `.login()` dan menguji tiga kondisi, yaitu request tanpa token, dengan token salah, dan dengan token yang valid. Hasilnya, perubahan data ditolak jika token tidak benar dan bisa berjalan jika pengguna mempunyai hak akses serta token yang sesuai.
+
+**Implementasi API dan cara menjalankan proyek:**
+
+Endpoint yang digunakan pada Tugas 6 adalah `GET/POST /api/v1/educations/`, `GET/PUT/PATCH/DELETE /api/v1/educations/<uuid>/`, dan `POST /api/v1/educations/<uuid>/star/`. Pencarian menggunakan query `?title=` yang dicocokkan terhadap `school_name` tanpa memperhatikan huruf besar atau kecil. Data yang dikirim melalui API berisi `id`, `school_name`, `degree`, `start_year`, `end_year`, `logo`, `star_count`, dan `is_starred`. Tiga field yang wajib diisi adalah `school_name`, `degree`, dan `start_year`, sedangkan `end_year` dan `logo` bersifat opsional. API memakai status seperti 200, 201, 204, 400, 403, 404, dan 405 sesuai hasil request.
+
+Untuk menjalankan proyek secara lokal, saya menggunakan Python, virtual environment, dan dependensi pada `requirements.txt`. Setelah branch tugas tersedia di GitHub, repository dapat diambil menggunakan perintah berikut pada PowerShell:
+
+```powershell
+git clone --branch feat/assignment-6 --single-branch https://github.com/seanve1/myportofolio.git
+cd myportofolio
+py -3.13 -m venv env
+.\env\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+$env:SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(50))"
+$env:DEBUG = "True"
+$env:PRODUCTION = "False"
+python manage.py migrate
+python manage.py runserver
+```
+
+Halaman Education dapat dibuka melalui `http://127.0.0.1:8000/education/` dan daftar API melalui `http://127.0.0.1:8000/api/v1/educations/`. Untuk membuat superuser, jalankan `python manage.py createsuperuser`. Role Editor menggunakan Django Group dengan nama persis `Editor`. Konfigurasi di atas ditujukan untuk lingkungan lokal dan perlu disesuaikan kembali jika aplikasi akan di-*deploy*. Langkah instalasi diperiksa terhadap konfigurasi proyek, tetapi belum diuji ulang dari *fresh clone*.
+
+**Pengujian:**
+
+Saya menjalankan `python manage.py check` dan `python manage.py test main`. Pada pengujian terakhir tanggal 9 November 2026, terdapat **73 tests yang lulus**. Pengujian mencakup serializer, validasi, CRUD, HTTP status, akses setiap role, Star berdasarkan pengguna yang login, perlindungan CSRF, integrasi template, serta efisiensi query saat mengambil daftar Education. Saya juga memeriksa agar API Organization pada Tutorial 7 tidak ikut rusak.
+
+Selain automated tests, saya menggunakan bantuan QA browser melalui Chrome pada lebar 360px, 390px, 768px, dan 1280px. Beberapa masalah yang ditemukan adalah card dan header yang overflow, toast yang keluar dari layar, ukuran tombol yang kurang nyaman, serta fokus keyboard pada modal. Setelah diperbaiki, alur CRUD, pencarian, Star, dan tampilan responsif kembali diperiksa. Pengujian browser yang mengubah data memakai salinan database sementara, bukan database pengembangan asli. Pengujian ini belum mencakup perangkat fisik, browser selain Chrome, atau audit screen reader secara menyeluruh.
+
+**AI Disclosure:**
+
+Alat yang digunakan: ChatGPT dan OpenAI Codex Desktop.
+
+Dalam pengerjaan Tugas 6, saya menggunakan bantuan AI untuk mendiskusikan beberapa konsep Django REST Framework, khususnya penggunaan ModelSerializer, pengaturan permission, serta integrasi API dengan JavaScript. Saya juga memanfaatkan AI untuk membantu implementasi beberapa bagian kode, mencari kemungkinan kesalahan, dan menyusun pengujian agar fitur yang dikembangkan dapat berjalan sesuai ketentuan tugas.
+
+Pengembangan dilakukan secara bertahap dengan mengacu pada struktur proyek yang sudah saya kerjakan sebelumnya. Saya menentukan bagian Education sebagai objek pengembangan, menetapkan kebutuhan fitur, serta menyesuaikan implementasi dengan sistem autentikasi, pembagian role, dan desain website yang sudah ada. Setiap hasil bantuan AI saya periksa kembali, terutama agar perubahan yang dilakukan tidak mengganggu fitur sebelumnya. Pengelolaan Git, termasuk staging dan commit, tetap saya lakukan secara manual.
+
+Berikut merupakan beberapa prompt yang saya gunakan selama pengerjaan:
+
+1. Bagaimana cara menggunakan ModelSerializer untuk model Education dengan validasi field dan informasi Star?
+2. Bagaimana mengatur permission pada Django REST Framework agar setiap role memiliki hak akses yang berbeda?
+3. Bagaimana menghubungkan REST API dengan Fetch API agar fitur CRUD dan Star dapat berjalan tanpa reload halaman?
+4. Bagaimana menangani CSRF token, kesalahan respons API, dan validasi input pada AJAX?
+5. Bagaimana memeriksa responsivitas halaman, aksesibilitas modal, dan memastikan fitur lama tetap berjalan setelah integrasi DRF?
+
+Salah satu kendala yang saya temukan adalah beberapa implementasi yang terlihat benar dari sisi kode ternyata masih memiliki masalah ketika diuji melalui browser, terutama pada tampilan mobile dan navigasi keyboard. Saya kemudian menggunakan hasil pengujian tersebut untuk mengevaluasi dan memperbaiki implementasi dengan bantuan AI. Dari proses ini, saya memahami bahwa penggunaan AI tetap membutuhkan pemeriksaan ulang, baik dari sisi fungsionalitas, keamanan, maupun kesesuaian dengan kebutuhan proyek.
