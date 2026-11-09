@@ -1,13 +1,13 @@
 import uuid
 from datetime import timedelta
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import AnonymousUser, Group, User
 from django.urls import reverse
 from django.utils import timezone
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
-from main.models import Organization
-from main.serializers import OrganizationSerializer
+from main.models import Education, Organization
+from main.serializers import EducationSerializer, OrganizationSerializer
 
 
 class OrganizationAPITest(APITestCase):
@@ -264,3 +264,169 @@ class OrganizationAPITest(APITestCase):
                     deleted = client.delete(created_url, **headers)
                     self.assertEqual(deleted.status_code, 204)
                     self.assertEqual(deleted.content, b"")
+
+
+class EducationSerializerTest(APITestCase):
+    def setUp(self):
+        self.visitor = User.objects.create_user("education-visitor")
+        self.other_user = User.objects.create_user("education-other")
+        self.education = Education.objects.create(
+            school_name="Portfolio University",
+            degree="Information Systems",
+            start_year="2025",
+            end_year="2029",
+            logo="/static/img/UI.png",
+        )
+        self.payload = {
+            "school_name": "New School",
+            "degree": "Bachelor of Science",
+            "start_year": "2026",
+        }
+
+    def test_serialized_fields_and_values(self):
+        data = EducationSerializer(self.education).data
+        self.assertEqual(data, {
+            "id": str(self.education.pk),
+            "school_name": "Portfolio University",
+            "degree": "Information Systems",
+            "start_year": "2025",
+            "end_year": "2029",
+            "logo": "/static/img/UI.png",
+            "star_count": 0,
+            "is_starred": False,
+        })
+        self.assertEqual(set(data), set(EducationSerializer.Meta.fields))
+
+    def test_star_state_uses_current_request_user(self):
+        self.education.starred_by.add(self.visitor)
+        for user, expected in (
+            (AnonymousUser(), False),
+            (self.visitor, True),
+            (self.other_user, False),
+        ):
+            with self.subTest(user=user):
+                request = APIRequestFactory().get("/")
+                request.user = user
+                data = EducationSerializer(
+                    self.education, context={"request": request}
+                ).data
+                self.assertEqual(data["is_starred"], expected)
+                self.assertEqual(data["star_count"], 1)
+        self.assertFalse(EducationSerializer(self.education).data["is_starred"])
+
+    def test_star_count_tracks_relation_changes(self):
+        for users, expected in (
+            ([], 0),
+            ([self.visitor], 1),
+            ([self.visitor, self.other_user], 2),
+            ([], 0),
+        ):
+            self.education.starred_by.set(users)
+            self.assertEqual(
+                EducationSerializer(self.education).data["star_count"], expected
+            )
+
+    def test_id_and_computed_fields_are_read_only(self):
+        forged_id = uuid.uuid4()
+        serializer = EducationSerializer(data={
+            **self.payload,
+            "id": str(forged_id),
+            "star_count": 99,
+            "is_starred": True,
+            "starred_by": [self.visitor.pk],
+        })
+        for field in ("id", "star_count", "is_starred"):
+            self.assertTrue(serializer.fields[field].read_only)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        for field in ("id", "star_count", "is_starred", "starred_by"):
+            self.assertNotIn(field, serializer.validated_data)
+        education = serializer.save()
+        self.assertNotEqual(education.pk, forged_id)
+        self.assertEqual(education.starred_by.count(), 0)
+        self.assertEqual(serializer.data["star_count"], 0)
+        self.assertFalse(serializer.data["is_starred"])
+
+    def test_html_sanitization(self):
+        serializer = EducationSerializer(data={
+            **self.payload,
+            "school_name": " <b>New School</b> ",
+            "degree": "<i>Bachelor of Science</i>",
+            "start_year": "2026",
+            "end_year": "<b>",
+            "logo": "<b>/static/img/UI.png</b>",
+        })
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        education = serializer.save()
+        self.assertEqual(education.school_name, "New School")
+        self.assertEqual(education.degree, "Bachelor of Science")
+        self.assertEqual(education.start_year, "2026")
+        self.assertEqual(education.end_year, "")
+        self.assertEqual(education.logo, "/static/img/UI.png")
+
+    def test_required_fields_reject_invalid_input_without_writes(self):
+        for field in ("school_name", "degree", "start_year"):
+            for value in ("", "   ", None, "<b>", [], {}):
+                with self.subTest(field=field, value=value):
+                    serializer = EducationSerializer(data={**self.payload, field: value})
+                    self.assertFalse(serializer.is_valid())
+                    self.assertIn(field, serializer.errors)
+            with self.subTest(field=field, omitted=True):
+                payload = {key: value for key, value in self.payload.items() if key != field}
+                serializer = EducationSerializer(data=payload)
+                self.assertFalse(serializer.is_valid())
+                self.assertIn(field, serializer.errors)
+        self.assertEqual(Education.objects.count(), 1)
+
+    def test_model_max_lengths_are_enforced(self):
+        for field, length in (
+            ("school_name", 255), ("degree", 255), ("start_year", 4),
+            ("end_year", 4), ("logo", 255),
+        ):
+            with self.subTest(field=field):
+                serializer = EducationSerializer(data={**self.payload, field: "x" * length})
+                self.assertTrue(serializer.is_valid(), serializer.errors)
+                serializer = EducationSerializer(data={**self.payload, field: "x" * (length + 1)})
+                self.assertFalse(serializer.is_valid())
+                self.assertIn(field, serializer.errors)
+        self.assertEqual(Education.objects.count(), 1)
+
+    def test_optional_fields_accept_omission_blank_and_null(self):
+        serializer = EducationSerializer(data=self.payload)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        education = serializer.save()
+        self.assertIsInstance(education.pk, uuid.UUID)
+        self.assertEqual(str(education), "New School")
+        self.assertIsNone(education.end_year)
+        self.assertIsNone(education.logo)
+        for value in ("", None):
+            with self.subTest(value=value):
+                serializer = EducationSerializer(education, data={
+                    **self.payload, "end_year": value, "logo": value,
+                })
+                self.assertTrue(serializer.is_valid(), serializer.errors)
+                serializer.save()
+                education.refresh_from_db()
+                self.assertEqual(education.end_year, value)
+                self.assertEqual(education.logo, value)
+                self.assertEqual(serializer.data["end_year"], value)
+                self.assertEqual(serializer.data["logo"], value)
+
+    def test_partial_update_preserves_identity_fields_and_stars(self):
+        self.education.starred_by.add(self.visitor)
+        original_pk = self.education.pk
+        serializer = EducationSerializer(self.education, data={
+            "school_name": "<b>Updated School</b>",
+            "id": str(uuid.uuid4()), "star_count": 0, "is_starred": False,
+            "starred_by": [],
+        }, partial=True)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save()
+        self.education.refresh_from_db()
+        self.assertEqual(self.education.pk, original_pk)
+        self.assertEqual(self.education.school_name, "Updated School")
+        self.assertEqual(self.education.degree, "Information Systems")
+        self.assertEqual(self.education.start_year, "2025")
+        self.assertEqual(self.education.end_year, "2029")
+        self.assertEqual(self.education.logo, "/static/img/UI.png")
+        self.assertTrue(self.education.starred_by.filter(pk=self.visitor.pk).exists())
+        self.assertEqual(Education.objects.count(), 1)
