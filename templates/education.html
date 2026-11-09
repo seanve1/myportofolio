@@ -67,10 +67,13 @@
     popover="auto"
     role="dialog"
     aria-modal="true"
+    aria-labelledby="add-education-title"
 >
     <button
         type="button"
         class="organization-delete-modal__backdrop"
+        tabindex="-1"
+        aria-label="Tutup"
         popovertarget="add-education-modal"
         popovertargetaction="hide"
     ></button>
@@ -79,13 +82,14 @@
         <button
             type="button"
             class="organization-delete-modal__close"
+            aria-label="Tutup"
             popovertarget="add-education-modal"
             popovertargetaction="hide"
         >
             ×
         </button>
 
-        <h2>Tambah Education</h2>
+        <h2 id="add-education-title">Tambah Education</h2>
         
         <form id="add-edu-form" class="organization-form">
             {% csrf_token %}
@@ -117,6 +121,7 @@
     <button
         type="button"
         class="organization-delete-modal__backdrop"
+        tabindex="-1"
         popovertarget="edit-education-modal"
         popovertargetaction="hide"
         aria-label="Tutup"
@@ -146,6 +151,8 @@
 </div>
 {% endif %}
 <script>
+document.body.classList.add('education-page');
+
 const BASE_EDUCATIONS_ENDPOINT = "{% url 'api:education-list' %}";
 const DETAIL_EDUCATION_ENDPOINT = "{% url 'api:education-detail' '00000000-0000-0000-0000-000000000000' %}";
 const STAR_EDUCATION_ENDPOINT = "{% url 'api:education-star' '00000000-0000-0000-0000-000000000000' %}";
@@ -229,7 +236,51 @@ function buildEducationCardElement(education) {
             </div>
         </div>
     `;
+    const image = articleElement.querySelector('img');
+    if (image) image.addEventListener('error', () => image.remove());
     return articleElement;
+}
+
+function openEducationModal(modal, trigger) {
+    modal.educationTrigger = trigger;
+    modal.showPopover();
+}
+
+for (const modal of [addEduModal, editEduModal]) {
+    if (!modal) continue;
+    modal.addEventListener('toggle', function(event) {
+        const open = event.newState === 'open';
+        for (const section of document.querySelectorAll('.site-header, main, .site-footer')) {
+            section.inert = open;
+        }
+        if (open) {
+            modal.querySelector('[name="school_name"]').focus();
+        } else {
+            const trigger = modal.educationTrigger;
+            (trigger && trigger.isConnected ? trigger : searchInput).focus();
+        }
+    });
+    modal.addEventListener('keydown', function(event) {
+        if (event.key !== 'Tab') return;
+        const controls = [...modal.querySelectorAll('button, input')]
+            .filter(control => !control.disabled && control.tabIndex >= 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+}
+
+const addEducationButton = document.querySelector('.organization-add-button');
+if (addEducationButton) {
+    addEducationButton.addEventListener('click', function() {
+        addEduModal.educationTrigger = addEducationButton;
+    });
 }
 
 function getCookie(name) {
@@ -307,7 +358,7 @@ gridContainer.addEventListener('click', async function(event) {
             if (sequence !== editSequence) return;
             editingEducation = data;
             for (const field of educationFields) editEduForm.elements[field].value = data[field] ?? '';
-            editEduModal.showPopover();
+            openEducationModal(editEduModal, button);
         } else if (action === 'star') {
             const data = await educationRequest(educationEndpoint(STAR_EDUCATION_ENDPOINT, id), 'POST');
             card.replaceWith(buildEducationCardElement(data));
@@ -370,6 +421,15 @@ searchForm.addEventListener('submit', function(event) {
     fetchEducations(searchInput.value.trim());
 });
 
-fetchEducations(searchInput.value.trim());
+document.addEventListener('DOMContentLoaded', function() {
+    const toast = document.getElementById('toast-component');
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.setAttribute('aria-atomic', 'true');
+    loadingState.setAttribute('role', 'status');
+    errorState.setAttribute('role', 'alert');
+    emptyState.setAttribute('role', 'status');
+    fetchEducations(searchInput.value.trim());
+});
 </script>
 {% endblock content %}

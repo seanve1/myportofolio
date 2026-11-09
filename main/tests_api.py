@@ -847,6 +847,38 @@ class EducationPageIntegrationTest(APITestCase):
         self.assertIsNone(updated.data["logo"])
         self.assertEqual(updated.data["end_year"], "")
 
+    def test_dialog_accessibility_and_keyboard_support(self):
+        for user in (self.owner, self.editor):
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(self.page_url)
+                self.assertContains(response, 'aria-labelledby="edit-education-title"')
+                self.assertContains(response, 'id="edit-education-title"')
+                if user == self.owner:
+                    self.assertContains(response, 'aria-labelledby="add-education-title"')
+                    self.assertContains(response, 'id="add-education-title"')
+                for fragment in (
+                    'aria-label="Tutup"', 'tabindex="-1"',
+                    "modal.addEventListener('keydown'",
+                    "event.key !== 'Tab'", "section.inert = open",
+                    'modal.querySelector(\'[name="school_name"]\').focus()',
+                    "modal.educationTrigger", "trigger.isConnected",
+                ):
+                    self.assertContains(response, fragment)
+
+    def test_status_announcements_and_broken_logo_handling(self):
+        response = self.client.get(self.page_url)
+        for fragment in (
+            "document.body.classList.add('education-page')",
+            "image.addEventListener('error', () => image.remove())",
+            "toast.setAttribute('role', 'status')",
+            "toast.setAttribute('aria-live', 'polite')",
+            "loadingState.setAttribute('role', 'status')",
+            "errorState.setAttribute('role', 'alert')",
+            "emptyState.setAttribute('role', 'status')",
+        ):
+            self.assertContains(response, fragment)
+
     def test_legacy_education_routes_preserve_role_boundaries(self):
         create_url = reverse("main:create_education")
         ajax_url = reverse("main:create_education_ajax")
