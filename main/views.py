@@ -283,6 +283,7 @@ def show_education(request):
         "title_query": title_query,
         "is_editor": is_editor(request.user),
         "form": EducationForm(),
+        "edit_form": EducationForm(auto_id="edit_%s"),
     }
 
     return render(

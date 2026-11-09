@@ -743,3 +743,135 @@ class EducationAPITest(APITestCase):
                     response = self.client.get(self.list_url)
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(len(response.data), 6)
+
+
+class EducationPageIntegrationTest(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user("education-page-owner", is_superuser=True)
+        self.editor = User.objects.create_user("education-page-editor")
+        self.editor.groups.add(Group.objects.create(name="Editor"))
+        self.visitor = User.objects.create_user("education-page-visitor")
+        self.staff = User.objects.create_user("education-page-staff", is_staff=True)
+        self.education = Education.objects.create(
+            school_name="Original School", degree="Science", start_year="2025",
+        )
+        self.page_url = reverse("main:show_education")
+        self.list_url = reverse("api:education-list")
+        self.detail_url = reverse("api:education-detail", args=[self.education.pk])
+        self.star_url = reverse("api:education-star", args=[self.education.pk])
+        self.payload = {
+            "school_name": "New School", "degree": "Arts", "start_year": "2026",
+        }
+
+    def test_page_api_configuration_controls_and_csrf_for_all_roles(self):
+        for user in (None, self.visitor, self.staff, self.editor, self.owner):
+            with self.subTest(user=user):
+                client = APIClient(enforce_csrf_checks=True)
+                if user:
+                    client.force_login(user)
+                response = client.get(self.page_url)
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, "education.html")
+                self.assertIn("csrftoken", client.cookies)
+                self.assertContains(response, f'const BASE_EDUCATIONS_ENDPOINT = "{self.list_url}";')
+                self.assertContains(response, 'const DETAIL_EDUCATION_ENDPOINT = "/api/v1/educations/')
+                self.assertContains(response, 'const STAR_EDUCATION_ENDPOINT = "/api/v1/educations/')
+                self.assertNotContains(response, reverse("main:get_educations_json"))
+                self.assertNotContains(response, reverse("main:create_education_ajax"))
+                self.assertNotContains(response, "item.fields")
+                self.assertNotContains(response, "item.pk")
+                self.assertNotContains(response, "localStorage")
+                authenticated = "true" if user else "false"
+                self.assertContains(
+                    response, f'const IS_AUTHENTICATED = "{authenticated}" === "true";'
+                )
+                if user == self.owner:
+                    self.assertContains(response, 'id="add-education-modal"')
+                else:
+                    self.assertNotContains(response, 'id="add-education-modal"')
+                if user in (self.owner, self.editor):
+                    self.assertContains(response, 'id="edit-education-modal"')
+                    self.assertContains(response, 'id="edit_school_name"')
+                    self.assertEqual(response.context["edit_form"].auto_id, "edit_%s")
+                else:
+                    self.assertNotContains(response, 'id="edit-education-modal"')
+                headers = {"HTTP_X_CSRFTOKEN": client.cookies["csrftoken"].value}
+                self.assertEqual(client.get(self.list_url).status_code, 200)
+                star = client.post(self.star_url, format="json", **headers)
+                self.assertEqual(star.status_code, 200 if user else 403)
+                updated = client.patch(
+                    self.detail_url, {"degree": "Changed"}, format="json", **headers
+                )
+                self.assertEqual(
+                    updated.status_code, 200 if user in (self.owner, self.editor) else 403
+                )
+                created = client.post(self.list_url, self.payload, format="json", **headers)
+                self.assertEqual(created.status_code, 201 if user == self.owner else 403)
+                deleted = client.delete(self.detail_url, **headers)
+                self.assertEqual(deleted.status_code, 204 if user == self.owner else 403)
+
+    def test_page_supports_ajax_edit_errors_and_safe_rendering(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.page_url)
+        for fragment in (
+            "event.preventDefault()", "isEdit ? 'PATCH' : 'POST'",
+            "'X-CSRFToken'", "credentials: 'same-origin'",
+            "escapeHtml(education.school_name)", "escapeHtml(education.degree)",
+            "escapeHtml(education.star_count)", "escapeHtml(logo)",
+            "window.confirm(", "data.is_starred", "new AbortController()",
+            "showToast('Gagal menyimpan education', error.message, 'error')",
+        ):
+            self.assertContains(response, fragment)
+        self.assertEqual(
+            response.context["form"]["school_name"].id_for_label, "id_school_name"
+        )
+
+    def test_page_cookie_supports_real_session_csrf(self):
+        self.owner.set_password("education-page-session-password")
+        self.owner.save(update_fields=["password"])
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(
+            username=self.owner.username, password="education-page-session-password"
+        ))
+        response = client.get(self.page_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("csrftoken", client.cookies)
+        self.assertEqual(client.post(self.list_url, self.payload, format="json").status_code, 403)
+        headers = {"HTTP_X_CSRFTOKEN": client.cookies["csrftoken"].value}
+        created = client.post(self.list_url, self.payload, format="json", **headers)
+        self.assertEqual(created.status_code, 201)
+        updated = client.patch(
+            self.detail_url, {"logo": None, "end_year": ""}, format="json", **headers
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertIsNone(updated.data["logo"])
+        self.assertEqual(updated.data["end_year"], "")
+
+    def test_legacy_education_routes_preserve_role_boundaries(self):
+        create_url = reverse("main:create_education")
+        ajax_url = reverse("main:create_education_ajax")
+        update_url = reverse("main:update_education", args=[self.education.pk])
+        delete_url = reverse("main:delete_education", args=[self.education.pk])
+        for user in (None, self.visitor, self.staff, self.editor):
+            with self.subTest(user=user):
+                client = APIClient()
+                if user:
+                    client.force_login(user)
+                for method in ("get", "post"):
+                    response = getattr(client, method)(create_url, self.payload)
+                    self.assertEqual(response.status_code, 403 if user else 302)
+                self.assertEqual(client.post(ajax_url, self.payload).status_code, 403)
+                self.assertEqual(client.post(delete_url).status_code, 403 if user else 302)
+                for method in ("get", "post"):
+                    response = getattr(client, method)(update_url, self.payload)
+                    expected = 302 if not user or (user == self.editor and method == "post") else 403
+                    if user == self.editor and method == "get":
+                        expected = 200
+                    self.assertEqual(response.status_code, expected)
+                self.assertEqual(Education.objects.count(), 1)
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.get(create_url).status_code, 200)
+        self.assertEqual(self.client.get(update_url).status_code, 200)
+        self.assertEqual(self.client.get(delete_url).status_code, 405)
+        data = self.client.get(reverse("main:get_educations_json")).json()
+        self.assertEqual(data[0]["pk"], str(self.education.pk))
